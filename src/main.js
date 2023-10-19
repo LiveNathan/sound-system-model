@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
 
 const scene = new THREE.Scene();
 const container = document.getElementById("container");
@@ -10,41 +11,70 @@ const camera = new THREE.PerspectiveCamera( 75, container.offsetWidth / containe
 const canvas = document.querySelector('#canvas');
 const renderer = new THREE.WebGLRenderer({canvas: canvas});
 renderer.setSize(container.offsetWidth, container.offsetHeight);
+container.appendChild(renderer.domElement);
+
+// camera.position.z = 5;
+camera.up.set(0, 0, 1);
+camera.position.set(40, -20, 20);
+camera.lookAt(new THREE.Vector3(0, 0, 0));
+
 const controls = new OrbitControls( camera, renderer.domElement );
-
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-const cube = new THREE.Mesh( geometry, material );
-// scene.add( cube );
-
-camera.position.z = 5;
+controls.object.up.set(0, 0, 1);
+controls.update();
 
 const axesHelper = new THREE.AxesHelper( 5 );
 scene.add( axesHelper );
 
-
-var labelRenderer = new CSS3DRenderer();
+const labelRenderer = new CSS2DRenderer();
 labelRenderer.setSize(container.offsetWidth, container.offsetHeight);
-container.appendChild(renderer.domElement);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.pointerEvents = 'none';
+// labelRenderer.domElement.style.top = '0px';
+container.appendChild(labelRenderer.domElement);
 
-function makeTextSprite(message) {
-    var element = document.createElement('div');
-    element.style.width = '100px';
-    element.style.height = '100px';
-    element.style.backgroundColor = 'rgba(0,0,0,0)';
-    element.style.color = 'red';
-    element.innerHTML = message;
-    return element;
-}
+const positiveAxisLength = 5;  // Ending point of axes from center
+const labelOffsets = [0.5, 0.5, 0];  // To fine-tune the exact position of labels if needed
 
-var labels = ['X', 'Y', 'Z'];
+// Create HTML elements for each label
+let xLabelDiv = document.createElement('div');
+xLabelDiv.className = 'text-red-600 text-base p-1 m-1';
+xLabelDiv.textContent = 'X';
 
-for (var i = 0; i < 3; ++i) {
-    var sprite = makeTextSprite(labels[i]);
-    var sprite3D = new CSS3DObject(sprite);
-    sprite3D.position.set((i==0) ? 6 : 0, (i==1) ? 6 : 0, (i==2) ? 6 : 0); // position labels
-    scene.add(sprite3D);
-}
+let yLabelDiv = document.createElement('div');
+yLabelDiv.className = 'text-axes-green text-base p-1 m-1';
+yLabelDiv.textContent = 'Y';
+
+let zLabelDiv = document.createElement('div');
+zLabelDiv.className = 'text-blue-600 text-base p-1 m-1';
+zLabelDiv.textContent = 'Z';
+
+// Create CSS2DObject for each label
+let xLabel = new CSS2DObject(xLabelDiv);
+let yLabel = new CSS2DObject(yLabelDiv);
+let zLabel = new CSS2DObject(zLabelDiv);
+
+// Position labels at ends of the axes
+xLabel.position.set(0.6, 0, 0);
+yLabel.position.set(0, 0.6, 0);
+zLabel.position.set(0, 0, 0.6);
+
+// Add labels to the scene
+scene.add(xLabel);
+scene.add(yLabel);
+scene.add(zLabel);
+
+
+
+
+
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+const sphere = new THREE.Mesh( geometry, material );
+sphere.position.set(0, 20, 10);
+scene.add( sphere );
+
+
+
 
 
 
