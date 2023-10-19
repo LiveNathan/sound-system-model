@@ -40,7 +40,9 @@ const subConfigCheckbox = document.getElementById("subConfigCheckbox");
 const subDepthInput = document.getElementById("sx");
 let subLocationX = 0;
 subDepthInput.addEventListener('input', (event) => {
-    let subLocationX = event.target.value;
+    let subLocationX = Number(event.target.value);
+    sub.position.x = -subDimensions.depth / 2 + subLocationX;  // Update sub's x position here.
+    animate();
 });
 const subDimensions = {depth: 1, width: 1, height: 1};
 const subGeometry = new THREE.BoxGeometry(subDimensions.width, subDimensions.height, subDimensions.depth);
