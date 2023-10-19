@@ -1,4 +1,5 @@
 import './index.css'
+import './updated-alignment-position-fields'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
@@ -35,7 +36,12 @@ mirroredMain.add(lineMirroredMain);
 mirroredMain.position.set(0, -mainY, 10);
 scene.add(mirroredMain);
 
-let subLocationX = 1.5;
+const subConfigCheckbox = document.getElementById("subConfigCheckbox");
+const subDepthInput = document.getElementById("sx");
+let subLocationX = 0;
+subDepthInput.addEventListener('input', (event) => {
+    let subLocationX = event.target.value;
+});
 const subDimensions = {depth: 1, width: 1, height: 1};
 const subGeometry = new THREE.BoxGeometry(subDimensions.width, subDimensions.height, subDimensions.depth);
 const subMaterial = new THREE.MeshBasicMaterial({color: 0x0000ff});
