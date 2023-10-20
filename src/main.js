@@ -47,8 +47,8 @@ const arrayDepthInput = document.getElementById("ad");
 // OBJECTS
 let mainDimensions = new Dimensions(1, 1, 1);
 
-setMainDepth(arraySpanInput.value);
-// let mainLocation = new Location(0, 20, 10);
+setMainHeight(arraySpanInput.value);
+// setMainHeightFromBottom(arrayBottomHeightInput.value);
 let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10)
 let main = createCube(mainLocation, 0xff0000, mainDimensions);
 
@@ -158,13 +158,20 @@ function setSubLocationY(subConfigurationLR) {
     }
 }
 
-function setMainDepth(depth) {
-    if (depth > 0) {
-        mainDimensions.depth = Number(depth);
+function setMainHeight(height) {
+    if (height > 0) {
+        mainDimensions.height = Number(height);
     } else {
-        mainDimensions.depth = 1;
+        mainDimensions.height = 1;
     }
+}
 
+function setMainHeightFromBottom(bottomHeight) {
+    if (bottomHeight > 0) {
+        mainDimensions.height = Number(bottomHeight);
+    } else {
+        mainDimensions.height = 1;
+    }
 }
 
 function onWindowResize() {
@@ -189,8 +196,7 @@ subDepthInput.addEventListener('input', (event) => {
 });
 
 arraySpanInput.addEventListener('input', (event) => {
-    setMainDepth(event.target.value);
+    setMainHeight(event.target.value);
     main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
-    main.position.x = -mainDimensions.depth / 2;
     animate();
 });
