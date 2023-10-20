@@ -47,6 +47,7 @@ const arrayDepthInput = document.getElementById("ad");
 // OBJECTS
 let mainDimensions = new Dimensions(1, 1, 1);
 setMainDimensionHeight(arraySpanInput.value);
+setMainDimensionDepth(arrayDepthInput.value);
 let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10)
 let main = createCube(mainLocation, 0xff0000, mainDimensions);
 setMainZFromBottom(arrayBottomHeightInput.value);
@@ -153,7 +154,7 @@ function setSubLocationY(subConfigurationLR, distanceFromCenter) {
     if (subConfigurationLR) {
         if (distanceFromCenter !== "") {
             sub.position.y = Number(distanceFromCenter) + (subDimensions.width / 2);
-        } else  {
+        } else {
             sub.position.y = main.position.y;
         }
     } else {
@@ -166,6 +167,14 @@ function setMainDimensionHeight(height) {
         mainDimensions.height = Number(height);
     } else {
         mainDimensions.height = 1;
+    }
+}
+
+function setMainDimensionDepth(depth) {
+    if (depth > 0) {
+        mainDimensions.depth = Number(depth);
+    } else {
+        mainDimensions.depth = 1;
     }
 }
 
@@ -198,8 +207,16 @@ subConfigCheckbox.addEventListener('change', (event) => {
 });
 
 subDepthInput.addEventListener('input', (event) => {
-    let subLocationX = Number(event.target.value);
-    sub.position.x = -subDimensions.depth / 2 + subLocationX;  // Update sub's x position here.
+    let x = Number(event.target.value);
+    sub.position.x = -subDimensions.depth / 2 + x;
+    animate();
+});
+
+arrayDepthInput.addEventListener('input', (event) => {
+    let x = Number(event.target.value);
+    setMainDimensionDepth(x);
+    main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
+    main.position.x = -mainDimensions.depth / 2;
     animate();
 });
 
