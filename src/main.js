@@ -50,6 +50,7 @@ setMainDimensionHeight(arraySpanInput.value);
 let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10)
 let main = createCube(mainLocation, 0xff0000, mainDimensions);
 setMainZFromBottom(arrayBottomHeightInput.value);
+setMainYFromSub(subDistanceFromCenterInput.value);
 
 let mainMirrorLocation = new Location(0, -20, 10);
 createCube(mainMirrorLocation, 0xff0000);
@@ -166,8 +167,14 @@ function setMainDimensionHeight(height) {
 }
 
 function setMainZFromBottom(bottomHeight) {
-    if (arrayBottomHeightInput.value !== "") {
+    if (bottomHeight !== "") {
         main.position.z = Number(bottomHeight) + (mainDimensions.height / 2);
+    }
+}
+
+function setMainYFromSub(distanceFromCenter) {
+    if (distanceFromCenter !== "") {
+        main.position.y = Number(distanceFromCenter) + (mainDimensions.width / 2);
     }
 }
 
@@ -200,5 +207,10 @@ arraySpanInput.addEventListener('input', (event) => {
 
 arrayBottomHeightInput.addEventListener('input', (event) => {
     setMainZFromBottom(event.target.value);
+    animate();
+});
+
+subDistanceFromCenterInput.addEventListener('input', (event) => {
+    setMainYFromSub(event.target.value);
     animate();
 });
