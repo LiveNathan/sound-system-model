@@ -289,7 +289,10 @@ arrayDepthInput.addEventListener('input', (event) => {
     main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
     if (!distanceReferencedFromBelowArrayCheckbox.checked) {
         main.position.x = -mainDimensions.depth / 2;
+        mainMirror.position.x = main.position.x;
     }
+    mainMirror.geometry = main.geometry;
+
     animate();
 });
 
