@@ -55,11 +55,10 @@ setMainYFromSub(subDistanceFromCenterInput.value);
 let mainMirrorLocation = new Location(0, -20, 10);
 createCube(mainMirrorLocation, 0xff0000);
 
-let subConfigurationLR = subConfigCheckbox.checked;
 const subDimensions = {depth: 1, width: 1, height: 1};
 let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
-setSubLocationY(subConfigurationLR);
 let sub = createCube(subLocation, 0x0000ff);
+setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
 
 // FUNCTIONS
 function animate() {
@@ -150,11 +149,15 @@ function createCube(location, color, dimensions = new Dimensions(1, 1, 1)) {
     return mesh;
 }
 
-function setSubLocationY(subConfigurationLR) {
+function setSubLocationY(subConfigurationLR, distanceFromCenter) {
     if (subConfigurationLR) {
-        return mainLocation.y;
+        if (distanceFromCenter !== "") {
+            sub.position.y = Number(distanceFromCenter) + (subDimensions.width / 2);
+        } else  {
+            sub.position.y = main.position.y;
+        }
     } else {
-        return 0;
+        sub.position.y = 0;
     }
 }
 
@@ -188,8 +191,7 @@ function onWindowResize() {
 window.addEventListener('resize', onWindowResize, false);
 
 subConfigCheckbox.addEventListener('change', (event) => {
-    subConfigurationLR = event.target.checked;
-    sub.position.y = setSubLocationY(subConfigurationLR);
+    setSubLocationY(event.target.checked, subDistanceFromCenterInput.value);
     animate();
 });
 
@@ -212,5 +214,6 @@ arrayBottomHeightInput.addEventListener('input', (event) => {
 
 subDistanceFromCenterInput.addEventListener('input', (event) => {
     setMainYFromSub(event.target.value);
+    setSubLocationY(subConfigCheckbox.checked, event.target.value);
     animate();
 });
