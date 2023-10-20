@@ -18,42 +18,62 @@ addAxes();
 const labelRenderer = addAxesLabels();
 
 // OBJECTS
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({color: 0xff0000});
-const main = new THREE.Mesh(geometry, material);
-const edges = new THREE.EdgesGeometry(geometry);
-const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x000000}));
-main.add(line);
-let mainY = 20;
-main.position.set(0, mainY, 10);
-scene.add(main);
+class Location {
+    constructor(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
 
-const mirroredMainMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
-const mirroredMain = new THREE.Mesh(geometry, mirroredMainMaterial);
-const edgesMirroredMain = new THREE.EdgesGeometry(geometry);
-const lineMirroredMain = new THREE.LineSegments(edgesMirroredMain, new THREE.LineBasicMaterial({color: 0x000000}));
-mirroredMain.add(lineMirroredMain);
-mirroredMain.position.set(0, -mainY, 10);
-scene.add(mirroredMain);
+function createCube(location, color) {
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshBasicMaterial({color: color});
+    const mesh = new THREE.Mesh(geometry, material);
+    const edges = new THREE.EdgesGeometry(geometry);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x000000}));
+    mesh.add(line);
+    mesh.position.set(location.x, location.y, location.z);
+    scene.add(mesh);
+    return mesh;
+}
+
+let mainLocation = new Location(0, 20, 10);
+createCube(mainLocation, 0xff0000);
+
+let mainMirrorLocation  = new Location(0, -20, 10);
+createCube(mainMirrorLocation, 0xff0000);
 
 const subConfigCheckbox = document.getElementById("subConfigCheckbox");
+let subConfigurationCenter = !subConfigCheckbox.checked;
+
+const subDimensions = {depth: 1, width: 1, height: 1};
+let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
+if (subConfigurationCenter) {
+    subLocation.y = 0;
+} else {
+    subLocation.y = mainLocation.y;
+}
+
+let sub = createCube(subLocation, 0x0000ff);
+
+
+
+
+subConfigCheckbox.addEventListener('change', (event) => {
+    subConfigurationCenter = event.target.checked;
+    console.log(subConfigurationCenter)
+});
 const subDepthInput = document.getElementById("sx");
 let subLocationX = 0;
 subDepthInput.addEventListener('input', (event) => {
-    let subLocationX = Number(event.target.value);
+    subLocationX = Number(event.target.value);
     sub.position.x = -subDimensions.depth / 2 + subLocationX;  // Update sub's x position here.
     animate();
 });
-const subDimensions = {depth: 1, width: 1, height: 1};
-const subGeometry = new THREE.BoxGeometry(subDimensions.width, subDimensions.height, subDimensions.depth);
-const subMaterial = new THREE.MeshBasicMaterial({color: 0x0000ff});
-const sub = new THREE.Mesh(subGeometry, subMaterial);
-const edgesSub = new THREE.EdgesGeometry(geometry);
-const lineSub = new THREE.LineSegments(edgesSub, new THREE.LineBasicMaterial({color: 0x000000}));
-sub.add(lineSub);
-sub.position.set(-subDimensions.depth / 2 + subLocationX, 0, subDimensions.height / 2);
-scene.add(sub);
 
+
+// FUNCTIONS
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
