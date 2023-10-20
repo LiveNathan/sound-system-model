@@ -52,8 +52,8 @@ let main = createCube(mainLocation, 0xff0000, mainDimensions);
 setMainZFromBottom(arrayBottomHeightInput.value);
 setMainYFromSub(subDistanceFromCenterInput.value);
 
-let mainMirrorLocation = new Location(0, -20, 10);
-createCube(mainMirrorLocation, 0xff0000);
+let mainMirrorLocation = new Location(main.position.x, -main.position.y, main.position.z);
+let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
 
 const subDimensions = {depth: 1, width: 1, height: 1};
 let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
@@ -172,12 +172,14 @@ function setMainDimensionHeight(height) {
 function setMainZFromBottom(bottomHeight) {
     if (bottomHeight !== "") {
         main.position.z = Number(bottomHeight) + (mainDimensions.height / 2);
+        mainMirror.position.z = main.position.z;
     }
 }
 
 function setMainYFromSub(distanceFromCenter) {
     if (distanceFromCenter !== "") {
         main.position.y = Number(distanceFromCenter) + (mainDimensions.width / 2);
+        mainMirror.position.y = -main.position.y;
     }
 }
 
@@ -204,6 +206,7 @@ subDepthInput.addEventListener('input', (event) => {
 arraySpanInput.addEventListener('input', (event) => {
     setMainDimensionHeight(event.target.value);
     main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
+    mainMirror.geometry = main.geometry;
     animate();
 });
 
