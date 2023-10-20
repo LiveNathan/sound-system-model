@@ -46,11 +46,10 @@ const arrayDepthInput = document.getElementById("ad");
 
 // OBJECTS
 let mainDimensions = new Dimensions(1, 1, 1);
-
-setMainHeight(arraySpanInput.value);
-// setMainHeightFromBottom(arrayBottomHeightInput.value);
+setMainDimensionHeight(arraySpanInput.value);
 let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10)
 let main = createCube(mainLocation, 0xff0000, mainDimensions);
+setMainZFromBottom(arrayBottomHeightInput.value);
 
 let mainMirrorLocation = new Location(0, -20, 10);
 createCube(mainMirrorLocation, 0xff0000);
@@ -158,7 +157,7 @@ function setSubLocationY(subConfigurationLR) {
     }
 }
 
-function setMainHeight(height) {
+function setMainDimensionHeight(height) {
     if (height > 0) {
         mainDimensions.height = Number(height);
     } else {
@@ -166,11 +165,9 @@ function setMainHeight(height) {
     }
 }
 
-function setMainHeightFromBottom(bottomHeight) {
-    if (bottomHeight > 0) {
-        mainDimensions.height = Number(bottomHeight);
-    } else {
-        mainDimensions.height = 1;
+function setMainZFromBottom(bottomHeight) {
+    if (arrayBottomHeightInput.value !== "") {
+        main.position.z = Number(bottomHeight) + (mainDimensions.height / 2);
     }
 }
 
@@ -196,7 +193,12 @@ subDepthInput.addEventListener('input', (event) => {
 });
 
 arraySpanInput.addEventListener('input', (event) => {
-    setMainHeight(event.target.value);
+    setMainDimensionHeight(event.target.value);
     main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
+    animate();
+});
+
+arrayBottomHeightInput.addEventListener('input', (event) => {
+    setMainZFromBottom(event.target.value);
     animate();
 });
