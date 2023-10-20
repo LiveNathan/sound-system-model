@@ -26,7 +26,14 @@ const labelRenderer = addAxesLabels();
 
 // PAGE ELEMENTS
 const subConfigCheckbox = document.getElementById("subConfigCheckbox");
+const arraySpanInput = document.getElementById("as");
+const arrayBottomHeightInput = document.getElementById("abz");
+const subDistanceFromCenterInput = document.getElementById("sy");
 const subDepthInput = document.getElementById("sx");
+const audienceDepthFirstRowInput = document.getElementById("axf");
+const audienceDepthLastRowInput = document.getElementById("axl");
+const distanceReferencedFromBelowArrayCheckbox = document.getElementById("xoff");
+const arrayDepthInput = document.getElementById("ad");
 
 // OBJECTS
 let mainLocation = new Location(0, 20, 10);
