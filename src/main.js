@@ -4,11 +4,20 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+
 class Location {
     constructor(x, y, z) {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+}
+
+class Dimensions {
+    constructor(height, width, depth) {
+        this.height = height;
+        this.width = width;
+        this.depth = depth;
     }
 }
 
@@ -36,10 +45,14 @@ const distanceReferencedFromBelowArrayCheckbox = document.getElementById("xoff")
 const arrayDepthInput = document.getElementById("ad");
 
 // OBJECTS
-let mainLocation = new Location(0, 20, 10);
-createCube(mainLocation, 0xff0000);
+let mainDimensions = new Dimensions(1, 1, 1);
 
-let mainMirrorLocation  = new Location(0, -20, 10);
+setMainDepth(arraySpanInput.value);
+// let mainLocation = new Location(0, 20, 10);
+let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10)
+let main = createCube(mainLocation, 0xff0000, mainDimensions);
+
+let mainMirrorLocation = new Location(0, -20, 10);
 createCube(mainMirrorLocation, 0xff0000);
 
 let subConfigurationLR = subConfigCheckbox.checked;
@@ -69,7 +82,7 @@ if (WebGL.isWebGLAvailable()) {
 function setupCamera(container) {
     const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
     camera.up.set(0, 0, 1);
-    camera.position.set(20, -10, 15);
+    camera.position.set(30, -10, 15);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     return camera;
 }
@@ -125,8 +138,8 @@ function addAxesLabels() {
     return labelRenderer;
 }
 
-function createCube(location, color) {
-    const geometry = new THREE.BoxGeometry();
+function createCube(location, color, dimensions = new Dimensions(1, 1, 1)) {
+    const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
     const material = new THREE.MeshBasicMaterial({color: color});
     const mesh = new THREE.Mesh(geometry, material);
     const edges = new THREE.EdgesGeometry(geometry);
@@ -145,6 +158,15 @@ function setSubLocationY(subConfigurationLR) {
     }
 }
 
+function setMainDepth(depth) {
+    if (depth > 0) {
+        mainDimensions.depth = Number(depth);
+    } else {
+        mainDimensions.depth = 1;
+    }
+
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -161,7 +183,14 @@ subConfigCheckbox.addEventListener('change', (event) => {
 });
 
 subDepthInput.addEventListener('input', (event) => {
-     let subLocationX = Number(event.target.value);
+    let subLocationX = Number(event.target.value);
     sub.position.x = -subDimensions.depth / 2 + subLocationX;  // Update sub's x position here.
+    animate();
+});
+
+arraySpanInput.addEventListener('input', (event) => {
+    setMainDepth(event.target.value);
+    main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
+    main.position.x = -mainDimensions.depth / 2;
     animate();
 });
