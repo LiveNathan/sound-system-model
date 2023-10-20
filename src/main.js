@@ -48,7 +48,8 @@ const arrayDepthInput = document.getElementById("ad");
 let mainDimensions = new Dimensions(1, 1, 1);
 setMainDimensionHeight(arraySpanInput.value);
 setMainDimensionDepth(arrayDepthInput.value);
-let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10)
+
+let mainLocation = setMainLocation();
 let main = createCube(mainLocation, 0xff0000, mainDimensions);
 setMainZFromBottom(arrayBottomHeightInput.value);
 setMainYFromSub(subDistanceFromCenterInput.value);
@@ -57,9 +58,12 @@ let mainMirrorLocation = new Location(main.position.x, -main.position.y, main.po
 let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
 
 const subDimensions = {depth: 1, width: 1, height: 1};
-let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
+let subLocation = setSubLocation();
 let sub = createCube(subLocation, 0x0000ff);
+let subMirror;
 setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
+
+addSubMirror();
 
 // FUNCTIONS
 function animate() {
@@ -153,12 +157,16 @@ function createCube(location, color, dimensions = new Dimensions(1, 1, 1)) {
 function setSubLocationY(subConfigurationLR, distanceFromCenter) {
     if (subConfigurationLR) {
         if (distanceFromCenter !== "") {
-            sub.position.y = Number(distanceFromCenter) + (subDimensions.width / 2);
+            subLocation.y = Number(distanceFromCenter) + (subDimensions.width / 2);
         } else {
-            sub.position.y = main.position.y;
+            subLocation.y = main.position.y;
         }
     } else {
-        sub.position.y = 0;
+        subLocation.y = 0;
+    }
+    sub.position.y = subLocation.y;
+    if (subMirror) {
+        subMirror.position.y = -sub.position.y;
     }
 }
 
@@ -178,6 +186,15 @@ function setMainDimensionDepth(depth) {
     }
 }
 
+function setMainLocation() {
+    let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10);
+
+    if (distanceReferencedFromBelowArrayCheckbox.checked) {
+        mainLocation.x = 0;
+    }
+    return mainLocation;
+}
+
 function setMainZFromBottom(bottomHeight) {
     if (bottomHeight !== "") {
         main.position.z = Number(bottomHeight) + (mainDimensions.height / 2);
@@ -192,6 +209,36 @@ function setMainYFromSub(distanceFromCenter) {
     }
 }
 
+function setSubLocation() {
+    let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
+    if (distanceReferencedFromBelowArrayCheckbox.checked) {
+        subLocation.x = 0;
+    }
+    return subLocation;
+}
+
+function addSubMirror() {
+    if (!subMirror) {
+        let subMirrorLocation = new Location(sub.position.x, -sub.position.y, sub.position.z);
+        subMirror = createCube(subMirrorLocation, 0x0000ff);
+        console.log("creating sub mirror")
+    }
+
+    if (subConfigCheckbox.checked) {
+        if (!scene.children.includes(subMirror)) {
+            scene.add(subMirror);
+            console.log("adding sub mirror to scene")
+        }
+    } else {
+        if (scene.children.includes(subMirror)) {
+            scene.remove(subMirror);
+            console.log("removing sub mirror from scene")
+        }
+    }
+    // console.log("sub: " + sub.position)
+    console.log(subMirror.position)
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -203,12 +250,36 @@ window.addEventListener('resize', onWindowResize, false);
 
 subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, subDistanceFromCenterInput.value);
+    addSubMirror();
+    animate();
+});
+
+distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
+    if (event.target.checked) {
+        mainLocation.x = 0;
+        subLocation.x = (-subDimensions.depth / 2) + (mainDimensions.depth / 2) + Number(subDepthInput.value); // Number(subDepthInput.value) +     + (mainDimensions.depth / 2)
+    } else {
+        mainLocation.x = -mainDimensions.depth / 2;
+        subLocation.x = -subDimensions.depth / 2 + Number(subDepthInput.value);
+    }
+    mainMirrorLocation.x = mainLocation.x;
+    main.position.x = mainLocation.x;
+    mainMirror.position.x = mainMirrorLocation.x;
+    sub.position.x = subLocation.x;
+    subMirror.position.x = sub.position.x;
     animate();
 });
 
 subDepthInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
-    sub.position.x = -subDimensions.depth / 2 + x;
+
+    if (distanceReferencedFromBelowArrayCheckbox.checked) {
+        sub.position.x = -subDimensions.depth / 2 + x + mainDimensions.depth / 2;
+    } else {
+        sub.position.x = -subDimensions.depth / 2 + x;
+    }
+
+    subMirror.position.x = sub.position.x;
     animate();
 });
 
@@ -216,7 +287,9 @@ arrayDepthInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
     setMainDimensionDepth(x);
     main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
-    main.position.x = -mainDimensions.depth / 2;
+    if (!distanceReferencedFromBelowArrayCheckbox.checked) {
+        main.position.x = -mainDimensions.depth / 2;
+    }
     animate();
 });
 
