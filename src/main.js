@@ -167,7 +167,6 @@ function createCube(location, color, dimensions = new Dimensions(1, 1, 1), opaci
     const mesh = new THREE.Mesh(geometry, material);
     const edges = new THREE.EdgesGeometry(geometry);
 
-    // Create a new color from the original one and make it brighter
     const edgeColor = new THREE.Color(color);
     edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
 
@@ -177,6 +176,27 @@ function createCube(location, color, dimensions = new Dimensions(1, 1, 1), opaci
     mesh.position.set(location.x, location.y, location.z);
     scene.add(mesh);
     return mesh;
+}
+
+function changeCubeDimensions(cube, dimensions) {
+    // Remove existing edges
+    cube.children.forEach(child => {
+        if (child instanceof THREE.LineSegments) {
+            cube.remove(child);
+        }
+    });
+
+    const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
+    const edges = new THREE.EdgesGeometry(geometry);
+
+    cube.geometry.dispose();
+    cube.geometry = geometry;
+
+    const edgeColor = new THREE.Color(cube.material.color.getHex());
+    edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
+
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor.getHex() }));
+    cube.add(line);
 }
 
 function setSubLocationY(subConfigurationLR, distanceFromCenter) {
@@ -245,7 +265,7 @@ function setSubLocation() {
 function addSubMirror() {
     if (!subMirror) {
         let subMirrorLocation = new Location(sub.position.x, -sub.position.y, sub.position.z);
-        subMirror = createCube(subMirrorLocation, 0x0000ff);
+        subMirror = createCube(subMirrorLocation, 0x0000ff, subDimensions);
     }
 
     if (subConfigCheckbox.checked) {
@@ -270,7 +290,7 @@ function updateAudience(
     updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, distancedReferencedFromBelowArray);
     updateAudienceDimensionWidth(subY);
     updateAudienceLocationZ(audienceSeated, meters);
-    audience.geometry = new THREE.BoxGeometry(audienceDimensions.depth, audienceDimensions.width, audienceDimensions.height);
+    changeCubeDimensions(audience, audienceDimensions);
 }
 
 // Method to update the location x
@@ -286,14 +306,12 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
     }
 }
 
-// Method to update the dimensions width
 function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
         audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
     }
 }
 
-// Method to update the location z
 function updateAudienceLocationZ(audienceSeated, meters) {
     if (audienceSeated) {
         audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER;
@@ -386,20 +404,21 @@ subDepthInput.addEventListener('input', (event) => {
 arrayDepthInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
     setMainDimensionDepth(x);
-    main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
+    // main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
+    changeCubeDimensions(main, mainDimensions);
     if (!distanceReferencedFromBelowArrayCheckbox.checked) {
         main.position.x = -mainDimensions.depth / 2;
         mainMirror.position.x = main.position.x;
     }
-    mainMirror.geometry = main.geometry;
+    changeCubeDimensions(mainMirror, mainDimensions);
 
     animate();
 });
 
 arraySpanInput.addEventListener('input', (event) => {
     setMainDimensionHeight(event.target.value);
-    main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
-    mainMirror.geometry = main.geometry;
+    changeCubeDimensions(main, mainDimensions);
+    changeCubeDimensions(mainMirror, mainDimensions);
 
     fitCameraToSelection();
     animate();
