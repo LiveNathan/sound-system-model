@@ -43,6 +43,10 @@ const audienceDepthFirstRowInput = document.getElementById("axf");
 const audienceDepthLastRowInput = document.getElementById("axl");
 const distanceReferencedFromBelowArrayCheckbox = document.getElementById("xoff");
 const arrayDepthInput = document.getElementById("ad");
+const audienceSeatedRadio = document.getElementById("seated-radio");
+const audienceStandingRadio = document.getElementById("standing-radio");
+const metersRadio = document.getElementById("meters-radio");
+const feetRadio = document.getElementById("feet-radio");
 
 // OBJECTS
 let mainDimensions = new Dimensions(1, 1, 1);
@@ -68,7 +72,8 @@ addSubMirror();
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
 let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
-updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked);
+updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+    audienceSeatedRadio.checked, metersRadio.checked);
 
 // FUNCTIONS
 function animate() {
@@ -247,7 +252,8 @@ function addSubMirror() {
 // }
 
 function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value,
-                        subY = subDistanceFromCenterInput.value, distancedReferencedFromBelowArray = distanceReferencedFromBelowArrayCheckbox.checked) {
+                        subY = subDistanceFromCenterInput.value, distancedReferencedFromBelowArray = distanceReferencedFromBelowArrayCheckbox.checked,
+                        audienceSeated = audienceSeatedRadio.checked, meters = metersRadio.checked) {
 
     if (audienceDepthFirstRow !== "" && audienceDepthLastRow !== "") {
         let depth = Number(audienceDepthLastRow) - Number(audienceDepthFirstRow);
@@ -268,6 +274,21 @@ function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value
     }
 
     audience.geometry = new THREE.BoxGeometry(audienceDimensions.depth, audienceDimensions.width, audienceDimensions.height);
+
+    if (audienceSeated) {
+        if (meters) {
+            audienceLocation.z = 1.26;
+        } else {
+            audienceLocation.z = 1.623;
+        }
+    } else {
+        if (meters) {
+            audienceLocation.z = 4.13;
+        } else {
+            audienceLocation.z = 5.32;
+        }
+    }
+    audience.position.z = audienceLocation.z;
 
 }
 
@@ -357,5 +378,23 @@ audienceDepthFirstRowInput.addEventListener('input', (event) => {
 
 audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(audienceDepthFirstRowInput.value, event.target.value);
+    animate();
+});
+
+audienceSeatedRadio.addEventListener('change', (event) => {
+    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+        event.target.checked);
+    animate();
+});
+
+audienceStandingRadio.addEventListener('change', (event) => {
+    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+        event.target.checked);
+    animate();
+});
+
+metersRadio.addEventListener('change', (event) => {
+    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+        audienceSeatedRadio.checked, event.target.checked);
     animate();
 });
