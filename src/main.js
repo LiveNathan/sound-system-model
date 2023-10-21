@@ -57,13 +57,19 @@ setMainYFromSub(subDistanceFromCenterInput.value);
 let mainMirrorLocation = new Location(main.position.x, -main.position.y, main.position.z);
 let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
 
-const subDimensions = {depth: 1, width: 1, height: 1};
+const subDimensions = new Dimensions(1, 1, 1);
 let subLocation = setSubLocation();
 let sub = createCube(subLocation, 0x0000ff);
 let subMirror;
 setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
 
 addSubMirror();
+
+let audienceDimensions = new Dimensions(0.1, 25, 30);
+let audienceLocation = new Location(18, 0, 1.2);
+setAudienceX();
+let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
+
 
 // FUNCTIONS
 function animate() {
@@ -86,7 +92,7 @@ if (WebGL.isWebGLAvailable()) {
 function setupCamera(container) {
     const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
     camera.up.set(0, 0, 1);
-    camera.position.set(30, -10, 15);
+    camera.position.set(50, -30, 15);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     return camera;
 }
@@ -221,22 +227,23 @@ function addSubMirror() {
     if (!subMirror) {
         let subMirrorLocation = new Location(sub.position.x, -sub.position.y, sub.position.z);
         subMirror = createCube(subMirrorLocation, 0x0000ff);
-        console.log("creating sub mirror")
     }
 
     if (subConfigCheckbox.checked) {
         if (!scene.children.includes(subMirror)) {
             scene.add(subMirror);
-            console.log("adding sub mirror to scene")
         }
     } else {
         if (scene.children.includes(subMirror)) {
             scene.remove(subMirror);
-            console.log("removing sub mirror from scene")
         }
     }
-    // console.log("sub: " + sub.position)
-    console.log(subMirror.position)
+}
+
+function setAudienceX() {
+    if (audienceDepthFirstRowInput.value !== "") {
+        audienceLocation.x = audienceDimensions.depth / 2 + Number(audienceDepthFirstRowInput.value);
+    }
 }
 
 function onWindowResize() {
@@ -311,5 +318,10 @@ arrayBottomHeightInput.addEventListener('input', (event) => {
 subDistanceFromCenterInput.addEventListener('input', (event) => {
     setMainYFromSub(event.target.value);
     setSubLocationY(subConfigCheckbox.checked, event.target.value);
+    animate();
+});
+
+audienceDepthFirstRowInput.addEventListener('input', (event) => {
+
     animate();
 });
