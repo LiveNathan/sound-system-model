@@ -67,8 +67,8 @@ addSubMirror();
 
 let audienceDimensions = new Dimensions(0.1, 25, 30);
 let audienceLocation = new Location(18, 0, 1.2);
-setAudienceX();
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
+setAudienceX(audienceDepthFirstRowInput.value);
 
 
 // FUNCTIONS
@@ -240,10 +240,11 @@ function addSubMirror() {
     }
 }
 
-function setAudienceX() {
-    if (audienceDepthFirstRowInput.value !== "") {
-        audienceLocation.x = audienceDimensions.depth / 2 + Number(audienceDepthFirstRowInput.value);
+function setAudienceX(depth) {
+    if (depth !== "") {
+        audienceLocation.x = audienceDimensions.depth / 2 + Number(depth);
     }
+    audience.position.x = audienceLocation.x;
 }
 
 function onWindowResize() {
@@ -322,6 +323,6 @@ subDistanceFromCenterInput.addEventListener('input', (event) => {
 });
 
 audienceDepthFirstRowInput.addEventListener('input', (event) => {
-
+    setAudienceX(event.target.value);
     animate();
 });
