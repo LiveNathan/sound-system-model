@@ -303,14 +303,6 @@ function onWindowResize() {
 // EVENT LISTENERS
 window.addEventListener('resize', onWindowResize, false);
 
-function setInputEventListener(inputElementId, callback) {
-    const inputElement = document.getElementById(inputElementId);
-    inputElement.addEventListener('input', (event) => {
-        callback(event.target.value);
-        animate();
-    });
-}
-
 subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, subDistanceFromCenterInput.value);
     addSubMirror();
@@ -397,7 +389,7 @@ audienceSeatedRadio.addEventListener('change', (event) => {
     animate();
 });
 
-audienceStandingRadio.addEventListener('change', (event) => {
+audienceStandingRadio.addEventListener('change', () => {
     updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
         false);
     animate();
@@ -409,7 +401,7 @@ metersRadio.addEventListener('change', (event) => {
     animate();
 });
 
-feetRadio.addEventListener('change', (event) => {
+feetRadio.addEventListener('change', () => {
     updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
         audienceSeatedRadio.checked, false);
     animate();
