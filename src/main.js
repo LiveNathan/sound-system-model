@@ -3,7 +3,7 @@ import './updated-alignment-position-fields'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
-import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+import {CSS2DObject, CSS2DRenderer} from 'three/addons/renderers/CSS2DRenderer.js';
 
 class Location {
     constructor(x, y, z) {
@@ -68,7 +68,7 @@ addSubMirror();
 let audienceDimensions = new Dimensions(0.1, 25, 30);
 let audienceLocation = new Location(18, 0, 1.2);
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
-setAudienceX(audienceDepthFirstRowInput.value);
+updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value);
 
 
 // FUNCTIONS
@@ -240,11 +240,22 @@ function addSubMirror() {
     }
 }
 
-function setAudienceX(depth) {
-    if (depth !== "") {
-        audienceLocation.x = audienceDimensions.depth / 2 + Number(depth);
+// function setAudienceX(depth) {
+//     if (depth !== "") {
+//         audienceLocation.x = audienceDimensions.depth / 2 + Number(depth);
+//     }
+//     audience.position.x = audienceLocation.x;
+// }
+
+function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value) {
+
+    if (audienceDepthFirstRow !== "" && audienceDepthLastRow !== "") {
+        let depth = Number(audienceDepthLastRow) - Number(audienceDepthFirstRow);
+        audience.geometry = new THREE.BoxGeometry(depth, audienceDimensions.width, audienceDimensions.height);
+        audienceLocation.x = depth / 2 + Number(audienceDepthFirstRow);
+        audience.position.x = audienceLocation.x;
     }
-    audience.position.x = audienceLocation.x;
+
 }
 
 function onWindowResize() {
@@ -323,6 +334,11 @@ subDistanceFromCenterInput.addEventListener('input', (event) => {
 });
 
 audienceDepthFirstRowInput.addEventListener('input', (event) => {
-    setAudienceX(event.target.value);
+    updateAudience(event.target.value);
+    animate();
+});
+
+audienceDepthLastRowInput.addEventListener('input', (event) => {
+    updateAudience(audienceDepthFirstRowInput.value, event.target.value);
     animate();
 });
