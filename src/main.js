@@ -21,6 +21,12 @@ class Dimensions {
     }
 }
 
+const AUDIENCE_LOCATION_Z_IF_SEATED_METERS = 1.26;
+const AUDIENCE_LOCATION_Z_IF_SEATED_OTHER = 1.623;
+const AUDIENCE_LOCATION_Z_NOT_SEATED_METERS = 4.13;
+const AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER = 5.32;
+const AUDIENCE_DIMENSION_WIDTH_FACTOR = 4;
+
 // SETUP
 const scene = new THREE.Scene();
 const container = document.getElementById("container");
@@ -244,52 +250,48 @@ function addSubMirror() {
     }
 }
 
-// function setAudienceX(depth) {
-//     if (depth !== "") {
-//         audienceLocation.x = audienceDimensions.depth / 2 + Number(depth);
-//     }
-//     audience.position.x = audienceLocation.x;
-// }
+function updateAudience(
+    audienceDepthFirstRow = audienceDepthFirstRowInput.value,
+    audienceDepthLastRow = audienceDepthLastRowInput.value,
+    subY = subDistanceFromCenterInput.value,
+    distancedReferencedFromBelowArray = distanceReferencedFromBelowArrayCheckbox.checked,
+    audienceSeated = audienceSeatedRadio.checked,
+    meters = metersRadio.checked
+) {
+    updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, distancedReferencedFromBelowArray);
+    updateAudienceDimensionWidth(subY);
+    updateAudienceLocationZ(audienceSeated, meters);
+    audience.geometry = new THREE.BoxGeometry(audienceDimensions.depth, audienceDimensions.width, audienceDimensions.height);
+}
 
-function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value,
-                        subY = subDistanceFromCenterInput.value, distancedReferencedFromBelowArray = distanceReferencedFromBelowArrayCheckbox.checked,
-                        audienceSeated = audienceSeatedRadio.checked, meters = metersRadio.checked) {
-
+// Method to update the location x
+function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, distancedReferencedFromBelowArray) {
     if (audienceDepthFirstRow !== "" && audienceDepthLastRow !== "") {
         let depth = Number(audienceDepthLastRow) - Number(audienceDepthFirstRow);
         audienceDimensions.depth = depth;
         audienceLocation.x = depth / 2 + Number(audienceDepthFirstRow);
-
-        console.log(audienceLocation.x)
         if (distancedReferencedFromBelowArray) {
             audienceLocation.x += mainDimensions.depth / 2;
         }
-        console.log(audienceLocation.x)
-
         audience.position.x = audienceLocation.x;
     }
+}
 
+// Method to update the dimensions width
+function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
-        audienceDimensions.width = Number(subY) * 4;
+        audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
     }
+}
 
-    audience.geometry = new THREE.BoxGeometry(audienceDimensions.depth, audienceDimensions.width, audienceDimensions.height);
-
+// Method to update the location z
+function updateAudienceLocationZ(audienceSeated, meters) {
     if (audienceSeated) {
-        if (meters) {
-            audienceLocation.z = 1.26;
-        } else {
-            audienceLocation.z = 1.623;
-        }
+        audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER;
     } else {
-        if (meters) {
-            audienceLocation.z = 4.13;
-        } else {
-            audienceLocation.z = 5.32;
-        }
+        audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_NOT_SEATED_METERS : AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER;
     }
     audience.position.z = audienceLocation.z;
-
 }
 
 function onWindowResize() {
@@ -300,6 +302,14 @@ function onWindowResize() {
 
 // EVENT LISTENERS
 window.addEventListener('resize', onWindowResize, false);
+
+function setInputEventListener(inputElementId, callback) {
+    const inputElement = document.getElementById(inputElementId);
+    inputElement.addEventListener('input', (event) => {
+        callback(event.target.value);
+        animate();
+    });
+}
 
 subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, subDistanceFromCenterInput.value);
