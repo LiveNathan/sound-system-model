@@ -68,8 +68,7 @@ addSubMirror();
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
 let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
-updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value);
-
+updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked);
 
 // FUNCTIONS
 function animate() {
@@ -247,12 +246,20 @@ function addSubMirror() {
 //     audience.position.x = audienceLocation.x;
 // }
 
-function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value, subY = subDistanceFromCenterInput.value) {
+function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value,
+                        subY = subDistanceFromCenterInput.value, distancedReferencedFromBelowArray = distanceReferencedFromBelowArrayCheckbox.checked) {
 
     if (audienceDepthFirstRow !== "" && audienceDepthLastRow !== "") {
         let depth = Number(audienceDepthLastRow) - Number(audienceDepthFirstRow);
         audienceDimensions.depth = depth;
         audienceLocation.x = depth / 2 + Number(audienceDepthFirstRow);
+
+        console.log(audienceLocation.x)
+        if (distancedReferencedFromBelowArray) {
+            audienceLocation.x += mainDimensions.depth / 2;
+        }
+        console.log(audienceLocation.x)
+
         audience.position.x = audienceLocation.x;
     }
 
@@ -282,7 +289,7 @@ subConfigCheckbox.addEventListener('change', (event) => {
 distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     if (event.target.checked) {
         mainLocation.x = 0;
-        subLocation.x = (-subDimensions.depth / 2) + (mainDimensions.depth / 2) + Number(subDepthInput.value); // Number(subDepthInput.value) +     + (mainDimensions.depth / 2)
+        subLocation.x = (-subDimensions.depth / 2) + (mainDimensions.depth / 2) + Number(subDepthInput.value);
     } else {
         mainLocation.x = -mainDimensions.depth / 2;
         subLocation.x = -subDimensions.depth / 2 + Number(subDepthInput.value);
@@ -292,6 +299,9 @@ distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     mainMirror.position.x = mainMirrorLocation.x;
     sub.position.x = subLocation.x;
     subMirror.position.x = sub.position.x;
+
+    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, event.target.checked);
+
     animate();
 });
 
