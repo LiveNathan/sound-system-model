@@ -35,6 +35,7 @@ const camera = setupCamera(container);
 const renderer = setupRenderer();
 container.appendChild(renderer.domElement);
 
+let controls;
 setupControls();
 addAxes();
 const labelRenderer = addAxesLabels();
@@ -77,9 +78,11 @@ addSubMirror();
 
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
 let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
-let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.2);
+let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.1);
 updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
     audienceSeatedRadio.checked, metersRadio.checked);
+
+fitCameraToSelection();
 
 // FUNCTIONS
 function animate() {
@@ -114,13 +117,13 @@ function setupRenderer() {
 }
 
 function setupControls() {
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.object.up.set(0, 0, 1);
     controls.update();
 }
 
 function addAxes() {
-    const axesHelper = new THREE.AxesHelper(30);
+    const axesHelper = new THREE.AxesHelper(500);
     scene.add(axesHelper);
 }
 
@@ -147,7 +150,7 @@ function addAxesLabels() {
     let yLabel = new CSS2DObject(yLabelDiv);
     let zLabel = new CSS2DObject(zLabelDiv);
 
-    const labelOffset = 1;
+    const labelOffset = 15;
     xLabel.position.set(labelOffset, 0, 0);
     yLabel.position.set(0, labelOffset, 0);
     zLabel.position.set(0, 0, labelOffset);
@@ -299,6 +302,38 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+function fitCameraToSelection (offset = 1) {
+    const box = new THREE.Box3();
+
+    // Loop over every mesh in the scene and update the box to include it.
+    scene.traverse(child => {
+        if (child instanceof THREE.Mesh) {
+            box.expandByObject(child);
+        }
+    });
+
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    const maxSize = Math.max(size.x, size.y, size.z);
+    const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
+    const fitWidthDistance = fitHeightDistance / camera.aspect;
+    const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
+
+    const direction = controls.target.clone().sub(camera.position).normalize().multiplyScalar(distance);
+
+    controls.maxDistance = distance * 2;
+    controls.target = center;
+
+    camera.near = distance / 10;
+    camera.far = distance * 10;
+    camera.updateProjectionMatrix();
+
+    camera.position.copy(controls.target).sub(direction);
+
+    controls.update();
+};
 
 // EVENT LISTENERS
 window.addEventListener('resize', onWindowResize, false);
