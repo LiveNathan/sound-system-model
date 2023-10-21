@@ -71,7 +71,7 @@ addSubMirror();
 
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
 let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
-let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
+let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.2);
 updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
     audienceSeatedRadio.checked, metersRadio.checked);
 
@@ -152,9 +152,9 @@ function addAxesLabels() {
     return labelRenderer;
 }
 
-function createCube(location, color, dimensions = new Dimensions(1, 1, 1)) {
+function createCube(location, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
     const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
-    const material = new THREE.MeshBasicMaterial({color: color});
+    const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
     const mesh = new THREE.Mesh(geometry, material);
     const edges = new THREE.EdgesGeometry(geometry);
     const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x000000}));
@@ -389,12 +389,18 @@ audienceSeatedRadio.addEventListener('change', (event) => {
 
 audienceStandingRadio.addEventListener('change', (event) => {
     updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
-        event.target.checked);
+        false);
     animate();
 });
 
 metersRadio.addEventListener('change', (event) => {
     updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
         audienceSeatedRadio.checked, event.target.checked);
+    animate();
+});
+
+feetRadio.addEventListener('change', (event) => {
+    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+        audienceSeatedRadio.checked, false);
     animate();
 });
