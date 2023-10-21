@@ -68,9 +68,9 @@ setMainYFromSub(subDistanceFromCenterInput.value);
 let mainMirrorLocation = new Location(main.position.x, -main.position.y, main.position.z);
 let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
 
-const subDimensions = new Dimensions(1, 1, 1);
+const subDimensions = new Dimensions(1, 2, 1);
 let subLocation = setSubLocation();
-let sub = createCube(subLocation, 0x0000ff);
+let sub = createCube(subLocation, 0x0000ff, subDimensions);
 let subMirror;
 setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
 
@@ -78,7 +78,7 @@ addSubMirror();
 
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
 let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
-let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.1);
+let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.15);
 updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
     audienceSeatedRadio.checked, metersRadio.checked);
 
@@ -166,7 +166,13 @@ function createCube(location, color, dimensions = new Dimensions(1, 1, 1), opaci
     const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
     const mesh = new THREE.Mesh(geometry, material);
     const edges = new THREE.EdgesGeometry(geometry);
-    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x000000}));
+
+    // Create a new color from the original one and make it brighter
+    const edgeColor = new THREE.Color(color);
+    edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
+
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
+
     mesh.add(line);
     mesh.position.set(location.x, location.y, location.z);
     scene.add(mesh);
@@ -306,7 +312,6 @@ function onWindowResize() {
 function fitCameraToSelection (offset = 1) {
     const box = new THREE.Box3();
 
-    // Loop over every mesh in the scene and update the box to include it.
     scene.traverse(child => {
         if (child instanceof THREE.Mesh) {
             box.expandByObject(child);
@@ -333,7 +338,7 @@ function fitCameraToSelection (offset = 1) {
     camera.position.copy(controls.target).sub(direction);
 
     controls.update();
-};
+}
 
 // EVENT LISTENERS
 window.addEventListener('resize', onWindowResize, false);
@@ -341,6 +346,7 @@ window.addEventListener('resize', onWindowResize, false);
 subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, subDistanceFromCenterInput.value);
     addSubMirror();
+    fitCameraToSelection();
     animate();
 });
 
@@ -373,6 +379,7 @@ subDepthInput.addEventListener('input', (event) => {
     }
 
     subMirror.position.x = sub.position.x;
+    fitCameraToSelection();
     animate();
 });
 
@@ -393,11 +400,14 @@ arraySpanInput.addEventListener('input', (event) => {
     setMainDimensionHeight(event.target.value);
     main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
     mainMirror.geometry = main.geometry;
+
+    fitCameraToSelection();
     animate();
 });
 
 arrayBottomHeightInput.addEventListener('input', (event) => {
     setMainZFromBottom(event.target.value);
+    fitCameraToSelection();
     animate();
 });
 
@@ -405,16 +415,19 @@ subDistanceFromCenterInput.addEventListener('input', (event) => {
     setMainYFromSub(event.target.value);
     setSubLocationY(subConfigCheckbox.checked, event.target.value);
     updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, event.target.value);
+    fitCameraToSelection();
     animate();
 });
 
 audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
+    fitCameraToSelection();
     animate();
 });
 
 audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(audienceDepthFirstRowInput.value, event.target.value);
+    fitCameraToSelection();
     animate();
 });
 
