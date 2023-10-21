@@ -65,8 +65,8 @@ setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
 
 addSubMirror();
 
-let audienceDimensions = new Dimensions(0.1, 25, 30);
-let audienceLocation = new Location(18, 0, 1.2);
+let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
+let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions);
 updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value);
 
@@ -92,7 +92,7 @@ if (WebGL.isWebGLAvailable()) {
 function setupCamera(container) {
     const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
     camera.up.set(0, 0, 1);
-    camera.position.set(50, -30, 15);
+    camera.position.set(70, -40, 15);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     return camera;
 }
@@ -247,14 +247,20 @@ function addSubMirror() {
 //     audience.position.x = audienceLocation.x;
 // }
 
-function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value) {
+function updateAudience(audienceDepthFirstRow = audienceDepthFirstRowInput.value, audienceDepthLastRow = audienceDepthLastRowInput.value, subY = subDistanceFromCenterInput.value) {
 
     if (audienceDepthFirstRow !== "" && audienceDepthLastRow !== "") {
         let depth = Number(audienceDepthLastRow) - Number(audienceDepthFirstRow);
-        audience.geometry = new THREE.BoxGeometry(depth, audienceDimensions.width, audienceDimensions.height);
+        audienceDimensions.depth = depth;
         audienceLocation.x = depth / 2 + Number(audienceDepthFirstRow);
         audience.position.x = audienceLocation.x;
     }
+
+    if (subY !== "") {
+        audienceDimensions.width = Number(subY) * 4;
+    }
+
+    audience.geometry = new THREE.BoxGeometry(audienceDimensions.depth, audienceDimensions.width, audienceDimensions.height);
 
 }
 
@@ -330,6 +336,7 @@ arrayBottomHeightInput.addEventListener('input', (event) => {
 subDistanceFromCenterInput.addEventListener('input', (event) => {
     setMainYFromSub(event.target.value);
     setSubLocationY(subConfigCheckbox.checked, event.target.value);
+    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, event.target.value);
     animate();
 });
 
