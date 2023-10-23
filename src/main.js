@@ -19,43 +19,45 @@ const AUDIENCE_LOCATION_Z_NOT_SEATED_METERS = 4.13;
 const AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER = 5.32;
 const AUDIENCE_DIMENSION_WIDTH_FACTOR = 4;
 
+// PAGE ELEMENTS
+const pageElements = {
+    container: document.getElementById("container"),
+    canvas: document.querySelector('#canvas'),
+    subConfigCheckbox: document.getElementById("subConfigCheckbox"),
+    arraySpanInput: document.getElementById("as"),
+    arrayBottomHeightInput: document.getElementById("abz"),
+    subDistanceFromCenterInput: document.getElementById("sy"),
+    subDepthInput: document.getElementById("sx"),
+    audienceDepthFirstRowInput: document.getElementById("axf"),
+    audienceDepthLastRowInput: document.getElementById("axl"),
+    distanceReferencedFromBelowArrayCheckbox: document.getElementById("xoff"),
+    arrayDepthInput: document.getElementById("ad"),
+    audienceSeatedRadio: document.getElementById("seated-radio"),
+    audienceStandingRadio: document.getElementById("standing-radio"),
+    metersRadio: document.getElementById("meters-radio"),
+    feetRadio: document.getElementById("feet-radio")
+};
+
 // SETUP
 const scene = new THREE.Scene();
-const container = document.getElementById("container");
-const canvas = document.querySelector('#canvas');
-const camera = setupCamera(container);
+const camera = setupCamera(pageElements.container);
 const renderer = setupRenderer();
-container.appendChild(renderer.domElement);
+pageElements.container.appendChild(renderer.domElement);
 
 let controls;
 setupControls();
 addAxes();
 const labelRenderer = addAxesLabels();
 
-// PAGE ELEMENTS
-const subConfigCheckbox = document.getElementById("subConfigCheckbox");
-const arraySpanInput = document.getElementById("as");
-const arrayBottomHeightInput = document.getElementById("abz");
-const subDistanceFromCenterInput = document.getElementById("sy");
-const subDepthInput = document.getElementById("sx");
-const audienceDepthFirstRowInput = document.getElementById("axf");
-const audienceDepthLastRowInput = document.getElementById("axl");
-const distanceReferencedFromBelowArrayCheckbox = document.getElementById("xoff");
-const arrayDepthInput = document.getElementById("ad");
-const audienceSeatedRadio = document.getElementById("seated-radio");
-const audienceStandingRadio = document.getElementById("standing-radio");
-const metersRadio = document.getElementById("meters-radio");
-const feetRadio = document.getElementById("feet-radio");
-
 // OBJECTS
 let mainDimensions = new Dimensions(1, 1, 1);
-setMainDimensionHeight(arraySpanInput.value);
-setMainDimensionDepth(arrayDepthInput.value);
+setMainDimensionHeight(pageElements.arraySpanInput.value);
+setMainDimensionDepth(pageElements.arrayDepthInput.value);
 
 let mainLocation = setMainLocation();
 let main = createCube(mainLocation, 0xff0000, mainDimensions);
-setMainZFromBottom(arrayBottomHeightInput.value);
-setMainYFromSub(subDistanceFromCenterInput.value);
+setMainZFromBottom(pageElements.arrayBottomHeightInput.value);
+setMainYFromSub(pageElements.arrayBottomHeightInput.value);
 
 let mainMirrorLocation = new THREE.Vector3(main.position.x, -main.position.y, main.position.z);
 let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
@@ -64,15 +66,15 @@ const subDimensions = new Dimensions(1, 2, 1);
 let subLocation = setSubLocation();
 let sub = createCube(subLocation, 0x0000ff, subDimensions);
 let subMirror;
-setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
+setSubLocationY(pageElements.subConfigCheckbox.checked, pageElements.arrayBottomHeightInput.value);
 
 addSubMirror();
 
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
 let audienceLocation = new THREE.Vector3(audienceDimensions.depth / 2 + 5, 0, 1.2);
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.15);
-updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
-    audienceSeatedRadio.checked, metersRadio.checked);
+updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+    pageElements.audienceSeatedRadio.checked, pageElements.metersRadio.checked);
 
 fitCameraToSelection();
 
@@ -103,8 +105,8 @@ function setupCamera(container) {
 }
 
 function setupRenderer() {
-    const renderer = new THREE.WebGLRenderer({canvas: canvas});
-    renderer.setSize(container.offsetWidth, container.offsetHeight);
+    const renderer = new THREE.WebGLRenderer({canvas: pageElements.canvas});
+    renderer.setSize(pageElements.container.offsetWidth, pageElements.container.offsetHeight);
     return renderer;
 }
 
@@ -121,10 +123,10 @@ function addAxes() {
 
 function addAxesLabels() {
     const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(container.offsetWidth, container.offsetHeight);
+    labelRenderer.setSize(pageElements.container.offsetWidth, pageElements.container.offsetHeight);
     labelRenderer.domElement.style.position = 'absolute';
     labelRenderer.domElement.style.pointerEvents = 'none';
-    container.appendChild(labelRenderer.domElement);
+    pageElements.container.appendChild(labelRenderer.domElement);
 
     let xLabelDiv = document.createElement('div');
     xLabelDiv.className = 'text-red-600 text-base p-1 m-1';
@@ -187,7 +189,7 @@ function changeCubeDimensions(cube, dimensions) {
     const edgeColor = new THREE.Color(cube.material.color.getHex());
     edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
 
-    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor.getHex() }));
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
     cube.add(line);
 }
 
@@ -226,7 +228,7 @@ function setMainDimensionDepth(depth) {
 function setMainLocation() {
     let mainLocation = new THREE.Vector3(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10);
 
-    if (distanceReferencedFromBelowArrayCheckbox.checked) {
+    if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         mainLocation.x = 0;
     }
     return mainLocation;
@@ -248,7 +250,7 @@ function setMainYFromSub(distanceFromCenter) {
 
 function setSubLocation() {
     let subLocation = new THREE.Vector3(-subDimensions.depth / 2, 0, subDimensions.height / 2)
-    if (distanceReferencedFromBelowArrayCheckbox.checked) {
+    if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         subLocation.x = 0;
     }
     return subLocation;
@@ -260,7 +262,7 @@ function addSubMirror() {
         subMirror = createCube(subMirrorLocation, 0x0000ff, subDimensions);
     }
 
-    if (subConfigCheckbox.checked) {
+    if (pageElements.subConfigCheckbox.checked) {
         if (!scene.children.includes(subMirror)) {
             scene.add(subMirror);
         }
@@ -272,12 +274,12 @@ function addSubMirror() {
 }
 
 function updateAudience(
-    audienceDepthFirstRow = audienceDepthFirstRowInput.value,
-    audienceDepthLastRow = audienceDepthLastRowInput.value,
-    subY = subDistanceFromCenterInput.value,
-    distancedReferencedFromBelowArray = distanceReferencedFromBelowArrayCheckbox.checked,
-    audienceSeated = audienceSeatedRadio.checked,
-    meters = metersRadio.checked
+    audienceDepthFirstRow = pageElements.audienceDepthFirstRowInput.value,
+    audienceDepthLastRow = pageElements.audienceDepthLastRowInput.value,
+    subY = pageElements.arrayBottomHeightInput.value,
+    distancedReferencedFromBelowArray = pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+    audienceSeated = pageElements.audienceSeatedRadio.checked,
+    meters = pageElements.metersRadio.checked
 ) {
     updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, distancedReferencedFromBelowArray);
     updateAudienceDimensionWidth(subY);
@@ -319,7 +321,7 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function fitCameraToSelection (offset = 1) {
+function fitCameraToSelection(offset = 1) {
     const box = new THREE.Box3();
 
     scene.traverse(child => {
@@ -353,20 +355,20 @@ function fitCameraToSelection (offset = 1) {
 // EVENT LISTENERS
 window.addEventListener('resize', onWindowResize, false);
 
-subConfigCheckbox.addEventListener('change', (event) => {
-    setSubLocationY(event.target.checked, subDistanceFromCenterInput.value);
+pageElements.subConfigCheckbox.addEventListener('change', (event) => {
+    setSubLocationY(event.target.checked, pageElements.arrayBottomHeightInput.value);
     addSubMirror();
     fitCameraToSelection();
     animate();
 });
 
-distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
+pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     if (event.target.checked) {
         mainLocation.x = 0;
-        subLocation.x = (-subDimensions.depth / 2) + (mainDimensions.depth / 2) + Number(subDepthInput.value);
+        subLocation.x = (-subDimensions.depth / 2) + (mainDimensions.depth / 2) + Number(pageElements.arrayBottomHeightInput.value);
     } else {
         mainLocation.x = -mainDimensions.depth / 2;
-        subLocation.x = -subDimensions.depth / 2 + Number(subDepthInput.value);
+        subLocation.x = -subDimensions.depth / 2 + Number(pageElements.arrayBottomHeightInput.value);
     }
     mainMirrorLocation.x = mainLocation.x;
     main.position.x = mainLocation.x;
@@ -374,15 +376,15 @@ distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     sub.position.x = subLocation.x;
     subMirror.position.x = sub.position.x;
 
-    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, event.target.checked);
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, event.target.checked);
 
     animate();
 });
 
-subDepthInput.addEventListener('input', (event) => {
+pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
 
-    if (distanceReferencedFromBelowArrayCheckbox.checked) {
+    if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         sub.position.x = -subDimensions.depth / 2 + x + mainDimensions.depth / 2;
     } else {
         sub.position.x = -subDimensions.depth / 2 + x;
@@ -393,12 +395,12 @@ subDepthInput.addEventListener('input', (event) => {
     animate();
 });
 
-arrayDepthInput.addEventListener('input', (event) => {
+pageElements.arrayDepthInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
     setMainDimensionDepth(x);
     // main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
     changeCubeDimensions(main, mainDimensions);
-    if (!distanceReferencedFromBelowArrayCheckbox.checked) {
+    if (!pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         main.position.x = -mainDimensions.depth / 2;
         mainMirror.position.x = main.position.x;
     }
@@ -407,7 +409,7 @@ arrayDepthInput.addEventListener('input', (event) => {
     animate();
 });
 
-arraySpanInput.addEventListener('input', (event) => {
+pageElements.arraySpanInput.addEventListener('input', (event) => {
     setMainDimensionHeight(event.target.value);
     changeCubeDimensions(main, mainDimensions);
     changeCubeDimensions(mainMirror, mainDimensions);
@@ -416,52 +418,52 @@ arraySpanInput.addEventListener('input', (event) => {
     animate();
 });
 
-arrayBottomHeightInput.addEventListener('input', (event) => {
+pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     setMainZFromBottom(event.target.value);
     fitCameraToSelection();
     animate();
 });
 
-subDistanceFromCenterInput.addEventListener('input', (event) => {
+pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     setMainYFromSub(event.target.value);
-    setSubLocationY(subConfigCheckbox.checked, event.target.value);
-    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, event.target.value);
+    setSubLocationY(pageElements.subConfigCheckbox.checked, event.target.value);
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, event.target.value);
     fitCameraToSelection();
     animate();
 });
 
-audienceDepthFirstRowInput.addEventListener('input', (event) => {
+pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
     fitCameraToSelection();
     animate();
 });
 
-audienceDepthLastRowInput.addEventListener('input', (event) => {
-    updateAudience(audienceDepthFirstRowInput.value, event.target.value);
+pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, event.target.value);
     fitCameraToSelection();
     animate();
 });
 
-audienceSeatedRadio.addEventListener('change', (event) => {
-    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+pageElements.audienceSeatedRadio.addEventListener('change', (event) => {
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         event.target.checked);
     animate();
 });
 
-audienceStandingRadio.addEventListener('change', () => {
-    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
+pageElements.audienceStandingRadio.addEventListener('change', () => {
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         false);
     animate();
 });
 
-metersRadio.addEventListener('change', (event) => {
-    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
-        audienceSeatedRadio.checked, event.target.checked);
+pageElements.metersRadio.addEventListener('change', (event) => {
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+        pageElements.audienceSeatedRadio.checked, event.target.checked);
     animate();
 });
 
-feetRadio.addEventListener('change', () => {
-    updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
-        audienceSeatedRadio.checked, false);
+pageElements.feetRadio.addEventListener('change', () => {
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+        pageElements.audienceSeatedRadio.checked, false);
     animate();
 });
