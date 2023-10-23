@@ -1,8 +1,16 @@
 import './index.css'
+import './updated-alignment-position-fields'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+class Location {
+    constructor(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
 
 // SETUP
 const scene = new THREE.Scene();
@@ -16,36 +24,24 @@ setupControls();
 addAxes();
 const labelRenderer = addAxesLabels();
 
+// PAGE ELEMENTS
+const subConfigCheckbox = document.getElementById("subConfigCheckbox");
+const subDepthInput = document.getElementById("sx");
+
 // OBJECTS
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({color: 0xff0000});
-const main = new THREE.Mesh(geometry, material);
-const edges = new THREE.EdgesGeometry(geometry);
-const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x000000}));
-main.add(line);
-let mainY = 20;
-main.position.set(0, mainY, 10);
-scene.add(main);
+let mainLocation = new Location(0, 20, 10);
+createCube(mainLocation, 0xff0000);
 
-const mirroredMainMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
-const mirroredMain = new THREE.Mesh(geometry, mirroredMainMaterial);
-const edgesMirroredMain = new THREE.EdgesGeometry(geometry);
-const lineMirroredMain = new THREE.LineSegments(edgesMirroredMain, new THREE.LineBasicMaterial({color: 0x000000}));
-mirroredMain.add(lineMirroredMain);
-mirroredMain.position.set(0, -mainY, 10);
-scene.add(mirroredMain);
+let mainMirrorLocation  = new Location(0, -20, 10);
+createCube(mainMirrorLocation, 0xff0000);
 
-let subLocationX = 1.5;
+let subConfigurationLR = subConfigCheckbox.checked;
 const subDimensions = {depth: 1, width: 1, height: 1};
-const subGeometry = new THREE.BoxGeometry(subDimensions.width, subDimensions.height, subDimensions.depth);
-const subMaterial = new THREE.MeshBasicMaterial({color: 0x0000ff});
-const sub = new THREE.Mesh(subGeometry, subMaterial);
-const edgesSub = new THREE.EdgesGeometry(geometry);
-const lineSub = new THREE.LineSegments(edgesSub, new THREE.LineBasicMaterial({color: 0x000000}));
-sub.add(lineSub);
-sub.position.set(-subDimensions.depth / 2 + subLocationX, 0, subDimensions.height / 2);
-scene.add(sub);
+let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
+setSubLocationY(subConfigurationLR);
+let sub = createCube(subLocation, 0x0000ff);
 
+// FUNCTIONS
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
@@ -62,8 +58,6 @@ if (WebGL.isWebGLAvailable()) {
     document.getElementById('container').appendChild(warning);
 
 }
-
-window.addEventListener('resize', onWindowResize, false);
 
 function setupCamera(container) {
     const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
@@ -124,8 +118,43 @@ function addAxesLabels() {
     return labelRenderer;
 }
 
+function createCube(location, color) {
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshBasicMaterial({color: color});
+    const mesh = new THREE.Mesh(geometry, material);
+    const edges = new THREE.EdgesGeometry(geometry);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x000000}));
+    mesh.add(line);
+    mesh.position.set(location.x, location.y, location.z);
+    scene.add(mesh);
+    return mesh;
+}
+
+function setSubLocationY(subConfigurationLR) {
+    if (subConfigurationLR) {
+        return mainLocation.y;
+    } else {
+        return 0;
+    }
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+// EVENT LISTENERS
+window.addEventListener('resize', onWindowResize, false);
+
+subConfigCheckbox.addEventListener('change', (event) => {
+    subConfigurationLR = event.target.checked;
+    sub.position.y = setSubLocationY(subConfigurationLR);
+    animate();
+});
+
+subDepthInput.addEventListener('input', (event) => {
+     let subLocationX = Number(event.target.value);
+    sub.position.x = -subDimensions.depth / 2 + subLocationX;  // Update sub's x position here.
+    animate();
+});
