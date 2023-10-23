@@ -5,14 +5,6 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import {CSS2DObject, CSS2DRenderer} from 'three/addons/renderers/CSS2DRenderer.js';
 
-class Location {
-    constructor(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-}
-
 class Dimensions {
     constructor(height, width, depth) {
         this.height = height;
@@ -65,7 +57,7 @@ let main = createCube(mainLocation, 0xff0000, mainDimensions);
 setMainZFromBottom(arrayBottomHeightInput.value);
 setMainYFromSub(subDistanceFromCenterInput.value);
 
-let mainMirrorLocation = new Location(main.position.x, -main.position.y, main.position.z);
+let mainMirrorLocation = new THREE.Vector3(main.position.x, -main.position.y, main.position.z);
 let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
 
 const subDimensions = new Dimensions(1, 2, 1);
@@ -77,7 +69,7 @@ setSubLocationY(subConfigCheckbox.checked, subDistanceFromCenterInput.value);
 addSubMirror();
 
 let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
-let audienceLocation = new Location(audienceDimensions.depth / 2 + 5, 0, 1.2);
+let audienceLocation = new THREE.Vector3(audienceDimensions.depth / 2 + 5, 0, 1.2);
 let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.15);
 updateAudience(audienceDepthFirstRowInput.value, audienceDepthLastRowInput.value, subDistanceFromCenterInput.value, distanceReferencedFromBelowArrayCheckbox.checked,
     audienceSeatedRadio.checked, metersRadio.checked);
@@ -232,7 +224,7 @@ function setMainDimensionDepth(depth) {
 }
 
 function setMainLocation() {
-    let mainLocation = new Location(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10);
+    let mainLocation = new THREE.Vector3(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10);
 
     if (distanceReferencedFromBelowArrayCheckbox.checked) {
         mainLocation.x = 0;
@@ -255,7 +247,7 @@ function setMainYFromSub(distanceFromCenter) {
 }
 
 function setSubLocation() {
-    let subLocation = new Location(-subDimensions.depth / 2, 0, subDimensions.height / 2)
+    let subLocation = new THREE.Vector3(-subDimensions.depth / 2, 0, subDimensions.height / 2)
     if (distanceReferencedFromBelowArrayCheckbox.checked) {
         subLocation.x = 0;
     }
@@ -264,7 +256,7 @@ function setSubLocation() {
 
 function addSubMirror() {
     if (!subMirror) {
-        let subMirrorLocation = new Location(sub.position.x, -sub.position.y, sub.position.z);
+        let subMirrorLocation = new THREE.Vector3(sub.position.x, -sub.position.y, sub.position.z);
         subMirror = createCube(subMirrorLocation, 0x0000ff, subDimensions);
     }
 
