@@ -17,11 +17,11 @@ import {
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
 import {Cube} from "./cube";
+import {setupCamera, renderer} from "./setup";
 
 // SETUP
 const scene = new THREE.Scene();
 const camera = setupCamera(pageElements.container);
-const renderer = setupRenderer();
 pageElements.container.appendChild(renderer.domElement);
 
 let controls;
@@ -75,20 +75,6 @@ if (WebGL.isWebGLAvailable()) {
     const warning = WebGL.getWebGLErrorMessage();
     document.getElementById('container').appendChild(warning);
 
-}
-
-function setupCamera(container) {
-    const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
-    camera.up.set(0, 0, 1);
-    camera.position.set(70, -40, 15);
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
-    return camera;
-}
-
-function setupRenderer() {
-    const renderer = new THREE.WebGLRenderer({canvas: pageElements.canvas});
-    renderer.setSize(pageElements.container.offsetWidth, pageElements.container.offsetHeight);
-    return renderer;
 }
 
 function setupControls() {
