@@ -4,6 +4,17 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import {CSS2DObject, CSS2DRenderer} from 'three/addons/renderers/CSS2DRenderer.js';
+import {
+    AUDIENCE_LOCATION_Z_IF_SEATED_METERS,
+    AUDIENCE_LOCATION_Z_IF_SEATED_OTHER,
+    AUDIENCE_LOCATION_Z_NOT_SEATED_METERS,
+    AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER,
+    AUDIENCE_DIMENSION_WIDTH_FACTOR,
+    MAIN_COLOR,
+    SUB_COLOR,
+    AUDIENCE_COLOR
+} from './constants.js';
+import {pageElements} from "./htmlPageElements";
 
 class Dimensions {
     constructor(height, width, depth) {
@@ -105,37 +116,7 @@ class Cube {
     getColor() {
         return this.mesh.material.color;
     }
-
-
 }
-
-const AUDIENCE_LOCATION_Z_IF_SEATED_METERS = 1.26;
-const AUDIENCE_LOCATION_Z_IF_SEATED_OTHER = 1.623;
-const AUDIENCE_LOCATION_Z_NOT_SEATED_METERS = 4.13;
-const AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER = 5.32;
-const AUDIENCE_DIMENSION_WIDTH_FACTOR = 4;
-const MAIN_COLOR = 0xff0000;
-const SUB_COLOR = 0x0000ff;
-const AUDIENCE_COLOR = 0x00ff00;
-
-// PAGE ELEMENTS
-const pageElements = {
-    container: document.getElementById("container"),
-    canvas: document.querySelector('#canvas'),
-    subConfigCheckbox: document.getElementById("subConfigCheckbox"),
-    arraySpanInput: document.getElementById("as"),
-    arrayBottomHeightInput: document.getElementById("abz"),
-    subDistanceFromCenterInput: document.getElementById("sy"),
-    subDepthInput: document.getElementById("sx"),
-    audienceDepthFirstRowInput: document.getElementById("axf"),
-    audienceDepthLastRowInput: document.getElementById("axl"),
-    distanceReferencedFromBelowArrayCheckbox: document.getElementById("xoff"),
-    arrayDepthInput: document.getElementById("ad"),
-    audienceSeatedRadio: document.getElementById("seated-radio"),
-    audienceStandingRadio: document.getElementById("standing-radio"),
-    metersRadio: document.getElementById("meters-radio"),
-    feetRadio: document.getElementById("feet-radio")
-};
 
 // SETUP
 const scene = new THREE.Scene();
@@ -253,23 +234,6 @@ function addAxesLabels() {
     scene.add(yLabel);
     scene.add(zLabel);
     return labelRenderer;
-}
-
-function createCube(location, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
-    const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
-    const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
-    const mesh = new THREE.Mesh(geometry, material);
-    const edges = new THREE.EdgesGeometry(geometry);
-
-    const edgeColor = new THREE.Color(color);
-    edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
-
-    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
-
-    mesh.add(line);
-    mesh.position.set(location.x, location.y, location.z);
-    scene.add(mesh);
-    return mesh;
 }
 
 function setSubLocationY(subConfigurationLR, distanceFromCenter) {
