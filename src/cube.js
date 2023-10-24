@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export class Cube {
     constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
         const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);

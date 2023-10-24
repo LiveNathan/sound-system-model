@@ -1,4 +1,4 @@
-export const renderer = setupRenderer();
+import * as THREE from 'three';
 
 export function setupCamera(container) {
     const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
@@ -8,7 +8,7 @@ export function setupCamera(container) {
     return camera;
 }
 
-function setupRenderer() {
+export function setupRenderer(pageElements) {
     const renderer = new THREE.WebGLRenderer({canvas: pageElements.canvas});
     renderer.setSize(pageElements.container.offsetWidth, pageElements.container.offsetHeight);
     return renderer;

@@ -17,10 +17,11 @@ import {
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
 import {Cube} from "./cube";
-import {setupCamera, renderer} from "./setup";
+import {setupCamera, setupRenderer} from "./setup";
 
 // SETUP
 const scene = new THREE.Scene();
+const renderer = setupRenderer(pageElements);
 const camera = setupCamera(pageElements.container);
 pageElements.container.appendChild(renderer.domElement);
 
