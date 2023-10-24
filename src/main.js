@@ -13,11 +13,110 @@ class Dimensions {
     }
 }
 
+class Cube {
+    constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
+        const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
+        const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
+        this.mesh = new THREE.Mesh(geometry, material);
+        const edges = new THREE.EdgesGeometry(geometry);
+        const edgeColor = new THREE.Color(color);
+        edgeColor.offsetHSL(0, 0, 0.2); // Increase lightness by 20%
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
+        this.mesh.add(line);
+        this.mesh.position.set(position.x, position.y, position.z);
+    }
+
+    changeDimensions(dimensions) {
+        this.mesh.children.forEach(child => {
+            if (child instanceof THREE.LineSegments) {
+                this.mesh.remove(child);
+            }
+        });
+
+        const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
+        const edges = new THREE.EdgesGeometry(geometry);
+
+        this.mesh.geometry.dispose();
+        this.mesh.geometry = geometry;
+
+        const edgeColor = new THREE.Color(this.mesh.material.color.getHex());
+        edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
+
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
+        this.mesh.add(line);
+    }
+
+    setDepth(depth) {
+        let dimensions = this.getDimensions();
+        this.changeDimensions(new Dimensions(depth, dimensions.width, dimensions.height));
+    }
+
+    setWidth(width) {
+        let dimensions = this.getDimensions();
+        this.changeDimensions(new Dimensions(dimensions.depth, width, dimensions.height));
+    }
+
+    setHeight(height) {
+        let dimensions = this.getDimensions();
+        this.changeDimensions(new Dimensions(dimensions.depth, dimensions.width, height));
+    }
+
+    getDimensions() {
+        return this.mesh.geometry.parameters;
+    }
+
+    // setPosition(position) {
+    //     this.mesh.position.set(position.x, position.y, position.z);
+    // }
+
+    getPosition() {
+        return this.mesh.position;
+    }
+
+    setX(xCoordinate) {
+        if (xCoordinate !== "") {
+            // this.mesh.position.x = Number(xCoordinate) + (this.mesh.geometry.parameters.depth / 2);
+            this.mesh.position.x = Number(xCoordinate);
+        }
+    }
+
+    setY(yCoordinate) {
+        if (yCoordinate !== "") {
+            this.mesh.position.y = Number(yCoordinate) + (this.mesh.geometry.parameters.width / 2);
+        }
+    }
+
+    setZ(zCoordinate) {
+        if (zCoordinate !== "") {
+            this.mesh.position.z = Number(zCoordinate);
+        }
+    }
+
+    flipY() {
+        this.mesh.position.y = -this.mesh.position.y;
+    }
+
+    setZFromBottom(bottomHeight) {
+        if (bottomHeight) {
+            this.mesh.position.z = Number(bottomHeight) + (this.mesh.geometry.parameters.height / 2);
+        }
+    }
+
+    getColor() {
+        return this.mesh.material.color;
+    }
+
+
+}
+
 const AUDIENCE_LOCATION_Z_IF_SEATED_METERS = 1.26;
 const AUDIENCE_LOCATION_Z_IF_SEATED_OTHER = 1.623;
 const AUDIENCE_LOCATION_Z_NOT_SEATED_METERS = 4.13;
 const AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER = 5.32;
 const AUDIENCE_DIMENSION_WIDTH_FACTOR = 4;
+const MAIN_COLOR = 0xff0000;
+const SUB_COLOR = 0x0000ff;
+const AUDIENCE_COLOR = 0x00ff00;
 
 // PAGE ELEMENTS
 const pageElements = {
@@ -54,25 +153,26 @@ let mainDimensions = new Dimensions(1, 1, 1);
 setMainDimensionHeight(pageElements.arraySpanInput.value);
 setMainDimensionDepth(pageElements.arrayDepthInput.value);
 
-let mainLocation = setMainLocation();
-let main = createCube(mainLocation, 0xff0000, mainDimensions);
-setMainZFromBottom(pageElements.arrayBottomHeightInput.value);
+let main = new Cube(setMainLocation(), MAIN_COLOR, mainDimensions);
+main.setZFromBottom(pageElements.arrayBottomHeightInput.value);
 setMainYFromSub(pageElements.arrayBottomHeightInput.value);
+scene.add(main.mesh);
 
-let mainMirrorLocation = new THREE.Vector3(main.position.x, -main.position.y, main.position.z);
-let mainMirror = createCube(mainMirrorLocation, 0xff0000, mainDimensions);
+let mainMirror = new Cube(main.getPosition(), main.getColor(), main.getDimensions());
+mainMirror.flipY();
+scene.add(mainMirror.mesh);
 
-const subDimensions = new Dimensions(1, 2, 1);
-let subLocation = setSubLocation();
-let sub = createCube(subLocation, 0x0000ff, subDimensions);
+let sub = new Cube(setSubLocation(), SUB_COLOR, new Dimensions(1, 2, 1));
+scene.add(sub.mesh);
+
 let subMirror;
 setSubLocationY(pageElements.subConfigCheckbox.checked, pageElements.arrayBottomHeightInput.value);
-
 addSubMirror();
 
-let audienceDimensions = new Dimensions(0.1, main.position.y * 4, main.position.y * 4);
+let audienceDimensions = new Dimensions(0.1, main.getPosition().y * AUDIENCE_DIMENSION_WIDTH_FACTOR, main.getPosition().y * AUDIENCE_DIMENSION_WIDTH_FACTOR);
 let audienceLocation = new THREE.Vector3(audienceDimensions.depth / 2 + 5, 0, 1.2);
-let audience = createCube(audienceLocation, 0x00ff00, audienceDimensions, 0.15);
+let audience = new Cube(audienceLocation, AUDIENCE_COLOR, audienceDimensions, 0.15);
+scene.add(audience.mesh);
 updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
     pageElements.audienceSeatedRadio.checked, pageElements.metersRadio.checked);
 
@@ -172,40 +272,17 @@ function createCube(location, color, dimensions = new Dimensions(1, 1, 1), opaci
     return mesh;
 }
 
-function changeCubeDimensions(cube, dimensions) {
-    // Remove existing edges
-    cube.children.forEach(child => {
-        if (child instanceof THREE.LineSegments) {
-            cube.remove(child);
-        }
-    });
-
-    const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
-    const edges = new THREE.EdgesGeometry(geometry);
-
-    cube.geometry.dispose();
-    cube.geometry = geometry;
-
-    const edgeColor = new THREE.Color(cube.material.color.getHex());
-    edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
-
-    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
-    cube.add(line);
-}
-
 function setSubLocationY(subConfigurationLR, distanceFromCenter) {
     if (subConfigurationLR) {
         if (distanceFromCenter !== "") {
-            subLocation.y = Number(distanceFromCenter) + (subDimensions.width / 2);
+            sub.setY(Number(distanceFromCenter) + (sub.getDimensions().width / 2));
         } else {
-            subLocation.y = main.position.y;
+            sub.setY(main.getPosition().y);
         }
-    } else {
-        subLocation.y = 0;
     }
-    sub.position.y = subLocation.y;
+
     if (subMirror) {
-        subMirror.position.y = -sub.position.y;
+        subMirror.setY(-sub.getPosition().y);
     }
 }
 
@@ -234,22 +311,15 @@ function setMainLocation() {
     return mainLocation;
 }
 
-function setMainZFromBottom(bottomHeight) {
-    if (bottomHeight !== "") {
-        main.position.z = Number(bottomHeight) + (mainDimensions.height / 2);
-        mainMirror.position.z = main.position.z;
-    }
-}
-
 function setMainYFromSub(distanceFromCenter) {
     if (distanceFromCenter !== "") {
-        main.position.y = Number(distanceFromCenter) + (mainDimensions.width / 2);
-        mainMirror.position.y = -main.position.y;
+        main.setY(Number(distanceFromCenter) + (mainDimensions.width / 2));
+        mainMirror.setY(-main.getPosition().y);
     }
 }
 
 function setSubLocation() {
-    let subLocation = new THREE.Vector3(-subDimensions.depth / 2, 0, subDimensions.height / 2)
+    let subLocation = new THREE.Vector3(-0.5, 0, 0.5);
     if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         subLocation.x = 0;
     }
@@ -258,8 +328,8 @@ function setSubLocation() {
 
 function addSubMirror() {
     if (!subMirror) {
-        let subMirrorLocation = new THREE.Vector3(sub.position.x, -sub.position.y, sub.position.z);
-        subMirror = createCube(subMirrorLocation, 0x0000ff, subDimensions);
+        subMirror = new Cube(sub.getPosition(), sub.getColor(), sub.getDimensions());
+        subMirror.flipY();
     }
 
     if (pageElements.subConfigCheckbox.checked) {
@@ -284,35 +354,34 @@ function updateAudience(
     updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, distancedReferencedFromBelowArray);
     updateAudienceDimensionWidth(subY);
     updateAudienceLocationZ(audienceSeated, meters);
-    changeCubeDimensions(audience, audienceDimensions);
 }
 
-// Method to update the location x
 function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, distancedReferencedFromBelowArray) {
     if (audienceDepthFirstRow !== "" && audienceDepthLastRow !== "") {
         let depth = Number(audienceDepthLastRow) - Number(audienceDepthFirstRow);
-        audienceDimensions.depth = depth;
-        audienceLocation.x = depth / 2 + Number(audienceDepthFirstRow);
+        audience.setDepth(depth)
+        audience.setX(depth / 2 + Number(audienceDepthFirstRow));
         if (distancedReferencedFromBelowArray) {
-            audienceLocation.x += mainDimensions.depth / 2;
+            // audienceLocation.x += mainDimensions.depth / 2;
+            audience.setX(audience.getPosition().x + mainDimensions.depth / 2);
         }
-        audience.position.x = audienceLocation.x;
     }
 }
 
 function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
-        audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
+        // audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
+        audience.setWidth(Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR);
     }
 }
 
 function updateAudienceLocationZ(audienceSeated, meters) {
     if (audienceSeated) {
-        audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER;
+        // audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER;
+        audience.setZ(meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER);
     } else {
-        audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_NOT_SEATED_METERS : AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER;
+        audience.setZ(meters ? AUDIENCE_LOCATION_Z_NOT_SEATED_METERS : AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER);
     }
-    audience.position.z = audienceLocation.z;
 }
 
 function onWindowResize() {
@@ -364,17 +433,14 @@ pageElements.subConfigCheckbox.addEventListener('change', (event) => {
 
 pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     if (event.target.checked) {
-        mainLocation.x = 0;
-        subLocation.x = (-subDimensions.depth / 2) + (mainDimensions.depth / 2) + Number(pageElements.arrayBottomHeightInput.value);
+        main.setX(0);
+        sub.setX((-sub.getDimensions().depth / 2) + (main.getDimensions().depth / 2) + Number(pageElements.arrayBottomHeightInput.value));
     } else {
-        mainLocation.x = -mainDimensions.depth / 2;
-        subLocation.x = -subDimensions.depth / 2 + Number(pageElements.arrayBottomHeightInput.value);
+        main.setX(-mainDimensions.depth / 2);
+        sub.setX(-sub.getDimensions().depth / 2 + Number(pageElements.arrayBottomHeightInput.value));
     }
-    mainMirrorLocation.x = mainLocation.x;
-    main.position.x = mainLocation.x;
-    mainMirror.position.x = mainMirrorLocation.x;
-    sub.position.x = subLocation.x;
-    subMirror.position.x = sub.position.x;
+    mainMirror.setX(main.getPosition().x);
+    subMirror.setX(sub.getPosition().x);
 
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, event.target.checked);
 
@@ -385,41 +451,36 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
 
     if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
-        sub.position.x = -subDimensions.depth / 2 + x + mainDimensions.depth / 2;
+        sub.setX(-sub.getDimensions().depth / 2 + x + main.getDimensions().depth / 2);
     } else {
-        sub.position.x = -subDimensions.depth / 2 + x;
+        sub.setX(-sub.getDimensions().depth / 2 + x);
     }
 
-    subMirror.position.x = sub.position.x;
+    subMirror.setX(sub.getPosition().x);
     fitCameraToSelection();
     animate();
 });
 
 pageElements.arrayDepthInput.addEventListener('input', (event) => {
-    let x = Number(event.target.value);
-    setMainDimensionDepth(x);
-    // main.geometry = new THREE.BoxGeometry(mainDimensions.depth, mainDimensions.width, mainDimensions.height);
-    changeCubeDimensions(main, mainDimensions);
+    main.setDepth(Number(event.target.value));
     if (!pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
-        main.position.x = -mainDimensions.depth / 2;
-        mainMirror.position.x = main.position.x;
+        main.setX(-main.getDimensions().depth / 2);
+        mainMirror.setDepth(main.getPosition().x);
     }
-    changeCubeDimensions(mainMirror, mainDimensions);
 
     animate();
 });
 
 pageElements.arraySpanInput.addEventListener('input', (event) => {
-    setMainDimensionHeight(event.target.value);
-    changeCubeDimensions(main, mainDimensions);
-    changeCubeDimensions(mainMirror, mainDimensions);
+    main.setHeight(event.target.value);
+    mainMirror.setHeight(main.getDimensions().height);
 
     fitCameraToSelection();
     animate();
 });
 
 pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
-    setMainZFromBottom(event.target.value);
+    main.setZFromBottom(event.target.value);
     fitCameraToSelection();
     animate();
 });
