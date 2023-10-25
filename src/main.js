@@ -1,9 +1,7 @@
 import './index.css'
 import './updated-alignment-position-fields'
 import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
-import {CSS2DObject, CSS2DRenderer} from 'three/addons/renderers/CSS2DRenderer.js';
 import {
     AUDIENCE_LOCATION_Z_IF_SEATED_METERS,
     AUDIENCE_LOCATION_Z_IF_SEATED_OTHER,
@@ -17,7 +15,7 @@ import {
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
 import {Cube} from "./cube";
-import {setupCamera, setupRenderer} from "./setup";
+import {setupCamera, setupRenderer, setupControls, addAxesLabels} from "./setup";
 
 // SETUP
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
@@ -26,10 +24,12 @@ const renderer = setupRenderer(pageElements);
 const camera = setupCamera(pageElements.container);
 pageElements.container.appendChild(renderer.domElement);
 
-let controls;
-setupControls();
+let controls = setupControls(camera, renderer);
 addAxes();
-const labelRenderer = addAxesLabels();
+const {xLabel, yLabel, zLabel, labelRenderer} = addAxesLabels(pageElements);
+scene.add(xLabel);
+scene.add(yLabel);
+scene.add(zLabel);
 
 // OBJECTS
 let mainDimensions = new Dimensions(1, 1, 1);
@@ -80,49 +80,9 @@ if (WebGL.isWebGLAvailable()) {
 
 }
 
-function setupControls() {
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.object.up.set(0, 0, 1);
-    controls.update();
-}
-
 function addAxes() {
     const axesHelper = new THREE.AxesHelper(500);
     scene.add(axesHelper);
-}
-
-function addAxesLabels() {
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(pageElements.container.offsetWidth, pageElements.container.offsetHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.pointerEvents = 'none';
-    pageElements.container.appendChild(labelRenderer.domElement);
-
-    let xLabelDiv = document.createElement('div');
-    xLabelDiv.className = 'text-red-600 text-base p-1 m-1';
-    xLabelDiv.textContent = 'X';
-    let yLabelDiv = document.createElement('div');
-
-    yLabelDiv.className = 'text-axes-green text-base p-1 m-1';
-    yLabelDiv.textContent = 'Y';
-    let zLabelDiv = document.createElement('div');
-
-    zLabelDiv.className = 'text-blue-600 text-base p-1 m-1';
-    zLabelDiv.textContent = 'Z';
-
-    let xLabel = new CSS2DObject(xLabelDiv);
-    let yLabel = new CSS2DObject(yLabelDiv);
-    let zLabel = new CSS2DObject(zLabelDiv);
-
-    const labelOffset = 15;
-    xLabel.position.set(labelOffset, 0, 0);
-    yLabel.position.set(0, labelOffset, 0);
-    zLabel.position.set(0, 0, labelOffset);
-
-    scene.add(xLabel);
-    scene.add(yLabel);
-    scene.add(zLabel);
-    return labelRenderer;
 }
 
 function setSubLocationY(subConfigurationLR, distanceFromCenter) {
