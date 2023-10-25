@@ -49,7 +49,6 @@ let sub = new Cube(setSubLocation(), SUB_COLOR, new Dimensions(1, 2, 1));
 setSubLocationY(pageElements.subConfigCheckbox.checked, pageElements.arrayBottomHeightInput.value);
 scene.add(sub.mesh);
 
-console.log("make subMirror")
 let subMirror;
 addSubMirror(pageElements.subConfigCheckbox);
 
@@ -202,14 +201,18 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function fitCameraToSelection(offset = 1) {
+function fitCameraToSelection(object = null, offset = 1) {
     const box = new THREE.Box3();
 
-    scene.traverse(child => {
-        if (child instanceof THREE.Mesh) {
-            box.expandByObject(child);
-        }
-    });
+    if (object) {
+        box.setFromObject(object);
+    } else {
+        scene.traverse(child => {
+            if (child instanceof THREE.Mesh) {
+                box.expandByObject(child);
+            }
+        });
+    }
 
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
@@ -287,6 +290,7 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     main.setHeight(event.target.value);
     mainMirror.setHeight(main.getDimensions().height);
 
+    fitCameraToSelection(main.mesh, 5);
     animate();
 });
 
