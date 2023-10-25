@@ -14,5 +14,6 @@ export const pageElements = {
     audienceSeatedRadio: document.getElementById("seated-radio"),
     audienceStandingRadio: document.getElementById("standing-radio"),
     metersRadio: document.getElementById("meters-radio"),
-    feetRadio: document.getElementById("feet-radio")
+    feetRadio: document.getElementById("feet-radio"),
+    resetZoom: document.getElementById("reset-zoom-button")
 };

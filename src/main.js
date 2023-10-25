@@ -239,7 +239,6 @@ window.addEventListener('resize', onWindowResize, false);
 pageElements.subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, pageElements.subDistanceFromCenterInput.value);
     addSubMirror(event.target);
-    fitCameraToSelection();
     animate();
 });
 
@@ -269,7 +268,6 @@ pageElements.subDepthInput.addEventListener('input', (event) => {
     }
 
     subMirror.setX(sub.getPosition().x);
-    fitCameraToSelection();
     animate();
 });
 
@@ -289,7 +287,6 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     main.setHeight(event.target.value);
     mainMirror.setHeight(main.getDimensions().height);
 
-    fitCameraToSelection();
     animate();
 });
 
@@ -297,7 +294,6 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     main.setZFromBottom(event.target.value);
     mainMirror.setZFromBottom(event.target.value);
 
-    fitCameraToSelection();
     animate();
 });
 
@@ -306,19 +302,16 @@ pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     setSubLocationY(pageElements.subConfigCheckbox.checked, event.target.value);
     subMirror.setY(-sub.getPosition().y);
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, event.target.value);
-    fitCameraToSelection();
     animate();
 });
 
 pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
-    fitCameraToSelection();
     animate();
 });
 
 pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, event.target.value);
-    fitCameraToSelection();
     animate();
 });
 
@@ -343,5 +336,10 @@ pageElements.metersRadio.addEventListener('change', (event) => {
 pageElements.feetRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, false);
+    animate();
+});
+
+pageElements.resetZoom.addEventListener('click', () => {
+    fitCameraToSelection();
     animate();
 });
