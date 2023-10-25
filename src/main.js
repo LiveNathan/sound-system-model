@@ -277,7 +277,7 @@ function fitCameraToSelection(offset = 1) {
 window.addEventListener('resize', onWindowResize, false);
 
 pageElements.subConfigCheckbox.addEventListener('change', (event) => {
-    setSubLocationY(event.target.checked, pageElements.arrayBottomHeightInput.value);
+    setSubLocationY(event.target.checked, pageElements.subDistanceFromCenterInput.value);
     addSubMirror(event.target);
     fitCameraToSelection();
     animate();
@@ -317,8 +317,10 @@ pageElements.arrayDepthInput.addEventListener('input', (event) => {
     main.setDepth(Number(event.target.value));
     if (!pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         main.setX(-main.getDimensions().depth / 2);
-        mainMirror.setDepth(main.getPosition().x);
     }
+
+    mainMirror.setDepth(main.getDimensions().depth);
+    mainMirror.setX(main.getPosition().x);
 
     animate();
 });
@@ -361,25 +363,25 @@ pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
 });
 
 pageElements.audienceSeatedRadio.addEventListener('change', (event) => {
-    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         event.target.checked);
     animate();
 });
 
 pageElements.audienceStandingRadio.addEventListener('change', () => {
-    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         false);
     animate();
 });
 
 pageElements.metersRadio.addEventListener('change', (event) => {
-    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, event.target.checked);
     animate();
 });
 
 pageElements.feetRadio.addEventListener('change', () => {
-    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, false);
     animate();
 });
