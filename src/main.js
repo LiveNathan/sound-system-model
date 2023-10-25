@@ -284,7 +284,7 @@ pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change',
 
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, event.target.checked);
 
-    fitCameraToSelection([main, sub], 2, "SIDE");
+    fitCameraToSelection([main, sub], 3, "SIDE");
     animate();
 });
 
@@ -298,6 +298,12 @@ pageElements.subDepthInput.addEventListener('input', (event) => {
     }
 
     subMirror.setX(sub.getPosition().x);
+
+    if (pageElements.subConfigCheckbox.checked) {
+        fitCameraToSelection([sub, subMirror], 1, "TOP");
+    } else {
+        fitCameraToSelection(sub, 3, "TOP");
+    }
     animate();
 });
 
