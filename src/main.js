@@ -201,11 +201,17 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function fitCameraToSelection(object = null, offset = 1) {
+function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
     const box = new THREE.Box3();
 
-    if (object) {
-        box.setFromObject(object);
+    if (objects) {
+        if (Array.isArray(objects)) {
+            objects.forEach(object => {
+                box.expandByObject(object.mesh);
+            });
+        } else {
+            box.setFromObject(objects.mesh);
+        }
     } else {
         scene.traverse(child => {
             if (child instanceof THREE.Mesh) {
@@ -227,11 +233,27 @@ function fitCameraToSelection(object = null, offset = 1) {
     controls.maxDistance = distance * 2;
     controls.target = center;
 
+    if (orientation) {
+        switch (orientation.toUpperCase()) {
+            case "TOP":
+                camera.position.set(center.x, center.y, center.z + distance);
+                break;
+            case "SIDE":
+                camera.position.set(center.x, center.y + distance, center.z);
+                break;
+            case "FRONT":
+                camera.position.set(center.x + distance, center.y, center.z);
+                break;
+            default:
+                break;
+        }
+    } else {
+        camera.position.copy(controls.target).sub(direction);
+    }
     camera.near = distance / 10;
     camera.far = distance * 10;
-    camera.updateProjectionMatrix();
 
-    camera.position.copy(controls.target).sub(direction);
+    camera.updateProjectionMatrix();
 
     controls.update();
 }
@@ -242,6 +264,10 @@ window.addEventListener('resize', onWindowResize, false);
 pageElements.subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, pageElements.subDistanceFromCenterInput.value);
     addSubMirror(event.target);
+
+    if (event.target.checked) {
+        fitCameraToSelection([sub, subMirror], 0.5, "FRONT");
+    }
     animate();
 });
 
@@ -258,6 +284,7 @@ pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change',
 
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, event.target.checked);
 
+    fitCameraToSelection([main, sub], 2, "SIDE");
     animate();
 });
 
@@ -290,7 +317,7 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     main.setHeight(event.target.value);
     mainMirror.setHeight(main.getDimensions().height);
 
-    fitCameraToSelection(main.mesh, 5);
+    fitCameraToSelection(main, 3, "SIDE");
     animate();
 });
 
@@ -298,6 +325,7 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     main.setZFromBottom(event.target.value);
     mainMirror.setZFromBottom(event.target.value);
 
+    fitCameraToSelection(main, 3, "SIDE");
     animate();
 });
 
