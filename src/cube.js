@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {Dimensions} from "./dimensions";
 
 export class Cube {
     constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
@@ -52,9 +53,9 @@ export class Cube {
         return this.mesh.geometry.parameters;
     }
 
-    // setPosition(position) {
-    //     this.mesh.position.set(position.x, position.y, position.z);
-    // }
+    setPosition(position) {
+        this.mesh.position.set(position.x, position.y, position.z);
+    }
 
     getPosition() {
         return this.mesh.position;

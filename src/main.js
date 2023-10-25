@@ -45,11 +45,12 @@ mainMirror.flipY();
 scene.add(mainMirror.mesh);
 
 let sub = new Cube(setSubLocation(), SUB_COLOR, new Dimensions(1, 2, 1));
+setSubLocationY(pageElements.subConfigCheckbox.checked, pageElements.arrayBottomHeightInput.value);
 scene.add(sub.mesh);
 
+console.log("make subMirror")
 let subMirror;
-setSubLocationY(pageElements.subConfigCheckbox.checked, pageElements.arrayBottomHeightInput.value);
-addSubMirror();
+addSubMirror(pageElements.subConfigCheckbox);
 
 let audienceDimensions = new Dimensions(0.1, main.getPosition().y * AUDIENCE_DIMENSION_WIDTH_FACTOR, main.getPosition().y * AUDIENCE_DIMENSION_WIDTH_FACTOR);
 let audienceLocation = new THREE.Vector3(audienceDimensions.depth / 2 + 5, 0, 1.2);
@@ -130,10 +131,8 @@ function setSubLocationY(subConfigurationLR, distanceFromCenter) {
         } else {
             sub.setY(main.getPosition().y);
         }
-    }
-
-    if (subMirror) {
-        subMirror.setY(-sub.getPosition().y);
+    } else {
+        sub.setY(0);
     }
 }
 
@@ -177,19 +176,19 @@ function setSubLocation() {
     return subLocation;
 }
 
-function addSubMirror() {
+function addSubMirror(subConfigCheckbox) {
     if (!subMirror) {
-        subMirror = new Cube(sub.getPosition(), sub.getColor(), sub.getDimensions());
-        subMirror.flipY();
+        subMirror = new Cube(mainMirror.getPosition(), sub.getColor(), new Dimensions(1, 2, 1));
+        subMirror.setZ(sub.getPosition().z);
     }
 
-    if (pageElements.subConfigCheckbox.checked) {
-        if (!scene.children.includes(subMirror)) {
-            scene.add(subMirror);
+    if (subConfigCheckbox.checked) {
+        if (!scene.children.includes(subMirror.mesh)) {
+            scene.add(subMirror.mesh);
         }
     } else {
-        if (scene.children.includes(subMirror)) {
-            scene.remove(subMirror);
+        if (scene.children.includes(subMirror.mesh)) {
+            scene.remove(subMirror.mesh);
         }
     }
 }
@@ -277,7 +276,7 @@ window.addEventListener('resize', onWindowResize, false);
 
 pageElements.subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, pageElements.arrayBottomHeightInput.value);
-    addSubMirror();
+    addSubMirror(event.target);
     fitCameraToSelection();
     animate();
 });
