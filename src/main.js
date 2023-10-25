@@ -20,6 +20,7 @@ import {Cube} from "./cube";
 import {setupCamera, setupRenderer} from "./setup";
 
 // SETUP
+THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 const scene = new THREE.Scene();
 const renderer = setupRenderer(pageElements);
 const camera = setupCamera(pageElements.container);
@@ -196,7 +197,7 @@ function addSubMirror(subConfigCheckbox) {
 function updateAudience(
     audienceDepthFirstRow = pageElements.audienceDepthFirstRowInput.value,
     audienceDepthLastRow = pageElements.audienceDepthLastRowInput.value,
-    subY = pageElements.arrayBottomHeightInput.value,
+    subY = pageElements.subDistanceFromCenterInput.value,
     distancedReferencedFromBelowArray = pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
     audienceSeated = pageElements.audienceSeatedRadio.checked,
     meters = pageElements.metersRadio.checked
@@ -213,7 +214,7 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
         audience.setX(depth / 2 + Number(audienceDepthFirstRow));
         if (distancedReferencedFromBelowArray) {
             // audienceLocation.x += mainDimensions.depth / 2;
-            audience.setX(audience.getPosition().x + mainDimensions.depth / 2);
+            audience.setX(audience.getPosition().x + main.getDimensions().depth / 2);
         }
     }
 }
@@ -221,6 +222,7 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
 function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
         // audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
+        console.log("updating audience width")
         audience.setWidth(Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR);
     }
 }
@@ -297,7 +299,7 @@ pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change',
     animate();
 });
 
-pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
+pageElements.subDepthInput.addEventListener('input', (event) => {
     let x = Number(event.target.value);
 
     if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
@@ -331,13 +333,16 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
 
 pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     main.setZFromBottom(event.target.value);
+    mainMirror.setZFromBottom(event.target.value);
+
     fitCameraToSelection();
     animate();
 });
 
-pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
+pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     setMainYFromSub(event.target.value);
     setSubLocationY(pageElements.subConfigCheckbox.checked, event.target.value);
+    subMirror.setY(-sub.getPosition().y);
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, event.target.value);
     fitCameraToSelection();
     animate();

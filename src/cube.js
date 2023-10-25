@@ -35,22 +35,31 @@ export class Cube {
     }
 
     setDepth(depth) {
-        let dimensions = this.getDimensions();
-        this.changeDimensions(new Dimensions(depth, dimensions.width, dimensions.height));
+        if (depth > 0) {
+            let dimensions = this.getDimensions();
+            this.changeDimensions(new Dimensions(dimensions.height, dimensions.width, depth));
+        }
     }
 
     setWidth(width) {
-        let dimensions = this.getDimensions();
-        this.changeDimensions(new Dimensions(dimensions.depth, width, dimensions.height));
+        if (width > 0) {
+            let dimensions = this.getDimensions();
+            this.changeDimensions(new Dimensions(dimensions.height, width, dimensions.depth));
+        }
     }
 
     setHeight(height) {
-        let dimensions = this.getDimensions();
-        this.changeDimensions(new Dimensions(dimensions.depth, dimensions.width, height));
+        if (height > 0) {
+            let dimensions = this.getDimensions();
+            this.changeDimensions(new Dimensions(height, dimensions.width, dimensions.depth));  // height, width, depth
+        }
     }
 
     getDimensions() {
-        return this.mesh.geometry.parameters;
+        let localDepth = this.mesh.geometry.parameters.width;
+        let localWidth = this.mesh.geometry.parameters.height;
+        let localHeight = this.mesh.geometry.parameters.depth;
+        return new Dimensions(localHeight, localWidth, localDepth);
     }
 
     setPosition(position) {
