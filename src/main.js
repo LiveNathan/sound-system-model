@@ -16,6 +16,8 @@ import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
 import {Cube} from "./cube";
 import {setupCamera, setupRenderer, setupControls, addAxesLabels} from "./setup";
+import {gsap} from "gsap";
+const timeline = gsap.timeline({defaults: {duration: 1}})
 
 // SETUP
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
@@ -238,23 +240,32 @@ function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
         return;
     }
 
+    let newPosition;
     if (orientation) {
         switch (orientation) {
             case "TOP":
-                camera.position.set(center.x, center.y, center.z + distance);
+                newPosition = new THREE.Vector3(center.x, center.y, center.z + distance);
                 break;
             case "SIDE":
-                camera.position.set(center.x, center.y + distance, center.z);
+                newPosition = new THREE.Vector3(center.x, center.y + distance, center.z);
                 break;
             case "FRONT":
-                camera.position.set(center.x + distance, center.y, center.z);
+                newPosition = new THREE.Vector3(center.x + distance, center.y, center.z);
                 break;
             default:
                 break;
         }
     } else {
-        camera.position.copy(controls.target).sub(direction);
+        newPosition = controls.target.clone().sub(direction);
     }
+
+    timeline.clear();
+    timeline.fromTo(camera.position,
+        {x: camera.position.x, y: camera.position.y, z: camera.position.z},
+        {x: newPosition.x, y: newPosition.y, z: newPosition.z,
+            onUpdate: function() { controls.update(); }}
+    );
+
     camera.near = distance / 10;
     camera.far = distance * 10;
 
