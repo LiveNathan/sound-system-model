@@ -279,15 +279,15 @@ pageElements.subConfigCheckbox.addEventListener('change', (event) => {
 pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     if (event.target.checked) {
         main.setX(0);
-        sub.setX((-sub.getDimensions().depth / 2) + (main.getDimensions().depth / 2) + Number(pageElements.arrayBottomHeightInput.value));
+        sub.setX((-sub.getDimensions().depth / 2) + (main.getDimensions().depth / 2) + Number(pageElements.subDepthInput.value));
     } else {
         main.setX(-mainDimensions.depth / 2);
-        sub.setX(-sub.getDimensions().depth / 2 + Number(pageElements.arrayBottomHeightInput.value));
+        sub.setX(-sub.getDimensions().depth / 2 + Number(pageElements.subDepthInput.value));
     }
     mainMirror.setX(main.getPosition().x);
     subMirror.setX(sub.getPosition().x);
 
-    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, event.target.checked);
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, event.target.checked);
 
     fitCameraToSelection([main, sub], 3, "SIDE");
     animate();
