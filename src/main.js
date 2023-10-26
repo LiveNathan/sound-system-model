@@ -10,8 +10,7 @@ import {
     AUDIENCE_DIMENSION_WIDTH_FACTOR,
     MAIN_COLOR,
     SUB_COLOR,
-    AUDIENCE_COLOR,
-    Orientation
+    AUDIENCE_COLOR
 } from './constants.js';
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
@@ -146,6 +145,8 @@ function addSubMirror(subConfigCheckbox) {
     if (subConfigCheckbox.checked) {
         if (!scene.children.includes(subMirror.mesh)) {
             scene.add(subMirror.mesh);
+            subMirror.setPosition(sub.getPosition());
+            subMirror.flipY();
         }
     } else {
         if (scene.children.includes(subMirror.mesh)) {
@@ -173,7 +174,6 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
         audience.setDepth(depth)
         audience.setX(depth / 2 + Number(audienceDepthFirstRow));
         if (distancedReferencedFromBelowArray) {
-            // audienceLocation.x += mainDimensions.depth / 2;
             audience.setX(audience.getPosition().x + main.getDimensions().depth / 2);
         }
     }
@@ -181,7 +181,6 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
 
 function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
-        // audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
         console.log("updating audience width")
         audience.setWidth(Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR);
     }
@@ -189,7 +188,6 @@ function updateAudienceDimensionWidth(subY) {
 
 function updateAudienceLocationZ(audienceSeated, meters) {
     if (audienceSeated) {
-        // audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER;
         audience.setZ(meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER);
     } else {
         audience.setZ(meters ? AUDIENCE_LOCATION_Z_NOT_SEATED_METERS : AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER);
@@ -234,15 +232,21 @@ function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
     controls.maxDistance = distance * 2;
     controls.target = center;
 
+    // Check if objects is an empty array
+    if (Array.isArray(objects) && objects.length === 0) {
+        console.error('Error: Empty array provided to fitCameraToSelection');
+        return;
+    }
+
     if (orientation) {
         switch (orientation) {
-            case orientation.TOP:
+            case "TOP":
                 camera.position.set(center.x, center.y, center.z + distance);
                 break;
-            case orientation.SIDE:
+            case "SIDE":
                 camera.position.set(center.x, center.y + distance, center.z);
                 break;
-            case orientation.FRONT:
+            case "FRONT":
                 camera.position.set(center.x + distance, center.y, center.z);
                 break;
             default:
@@ -267,7 +271,7 @@ pageElements.subConfigCheckbox.addEventListener('change', (event) => {
     addSubMirror(event.target);
 
     if (event.target.checked) {
-        fitCameraToSelection([sub, subMirror], 0.5, "FRONT");
+        fitCameraToSelection([sub, subMirror], 2, "FRONT");
     }
     animate();
 });
@@ -342,40 +346,52 @@ pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     setSubLocationY(pageElements.subConfigCheckbox.checked, event.target.value);
     subMirror.setY(-sub.getPosition().y);
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, event.target.value);
+
+    if (pageElements.subConfigCheckbox.checked) {
+        fitCameraToSelection([sub, subMirror], 1, "TOP");
+    } else {
+        fitCameraToSelection(sub, 3, "TOP");
+    }
     animate();
 });
 
 pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
+    fitCameraToSelection(null, 1, "TOP");
     animate();
 });
 
 pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, event.target.value);
+    fitCameraToSelection(null, 1, "TOP");
     animate();
 });
 
 pageElements.audienceSeatedRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         event.target.checked);
+    fitCameraToSelection(null, 1, "SIDE");
     animate();
 });
 
 pageElements.audienceStandingRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         false);
+    fitCameraToSelection(null, 1, "SIDE");
     animate();
 });
 
 pageElements.metersRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, event.target.checked);
+    fitCameraToSelection(null, 1, "SIDE");
     animate();
 });
 
 pageElements.feetRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, false);
+    fitCameraToSelection(null, 1, "SIDE");
     animate();
 });
 
