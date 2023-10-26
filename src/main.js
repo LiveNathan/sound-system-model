@@ -10,7 +10,8 @@ import {
     AUDIENCE_DIMENSION_WIDTH_FACTOR,
     MAIN_COLOR,
     SUB_COLOR,
-    AUDIENCE_COLOR
+    AUDIENCE_COLOR,
+    Orientation
 } from './constants.js';
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
@@ -234,14 +235,14 @@ function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
     controls.target = center;
 
     if (orientation) {
-        switch (orientation.toUpperCase()) {
-            case "TOP":
+        switch (orientation) {
+            case orientation.TOP:
                 camera.position.set(center.x, center.y, center.z + distance);
                 break;
-            case "SIDE":
+            case orientation.SIDE:
                 camera.position.set(center.x, center.y + distance, center.z);
                 break;
-            case "FRONT":
+            case orientation.FRONT:
                 camera.position.set(center.x + distance, center.y, center.z);
                 break;
             default:
@@ -316,6 +317,7 @@ pageElements.arrayDepthInput.addEventListener('input', (event) => {
     mainMirror.setDepth(main.getDimensions().depth);
     mainMirror.setX(main.getPosition().x);
 
+    fitCameraToSelection(main, 5, "SIDE")
     animate();
 });
 
