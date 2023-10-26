@@ -10,14 +10,13 @@ import {
     AUDIENCE_DIMENSION_WIDTH_FACTOR,
     MAIN_COLOR,
     SUB_COLOR,
-    AUDIENCE_COLOR
+    AUDIENCE_COLOR,
+    timeline
 } from './constants.js';
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
 import {Cube} from "./cube";
 import {setupCamera, setupRenderer, setupControls, addAxesLabels} from "./setup";
-import {gsap} from "gsap";
-const timeline = gsap.timeline({defaults: {duration: 1}})
 
 // SETUP
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
