@@ -156,6 +156,17 @@ function addSubMirror(subConfigCheckbox) {
     }
 }
 
+/**
+ * This function updates different audience properties and dimensions.
+ *
+ * @param {string|number} audienceDepthFirstRow - The audience depth for the first row. Default is the value from input.
+ * @param {string|number} audienceDepthLastRow - The audience depth for the last row. Default is the value from input.
+ * @param {string|number} subY - The distance of subwoofer from center. Default is the value from input.
+ * @param {boolean} distancedReferencedFromBelowArray - Check if the distance is referenced from below array. Default is a checked value from checkbox.
+ * @param {boolean} audienceSeated - Check if the audience is seated. Default is a checked value from radio button.
+ * @param {boolean} meters - Check if the measurement unit is in meters. Default is a checked value from radio button.
+ *
+ */
 function updateAudience(
     audienceDepthFirstRow = pageElements.audienceDepthFirstRowInput.value,
     audienceDepthLastRow = pageElements.audienceDepthLastRowInput.value,
@@ -201,6 +212,16 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+/**
+ * Adjusts the camera to fit a selection of objects within the view.
+ * The camera view can be oriented from top, side or front, and has calculated distance.
+ * The distance calculation will depend on the camera's field of view and its aspect ratio.
+ * The function offers different calculations based on whether the object is an array, has a specific orientation, or if it is null.
+ *
+ * @param {Array|null} objects - The objects that the camera must adapt to. If null, the function traverses the entire scene to get the outer boundary.
+ * @param {number} offset - The offset for the camera from the objects. A larger offset will move the camera further away. Default value is 1.
+ * @param {string|null} orientation - The orientation of the camera. Valid values are "TOP", "SIDE", "FRONT" or null. If null, the function will adapt the camera based on the objects and offset.
+ */
 function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
     const box = new THREE.Box3();
 

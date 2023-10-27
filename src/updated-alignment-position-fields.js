@@ -1,3 +1,7 @@
+/**
+ * Hey Ian, this file is just here for my reference on form functionality.
+ */
+
 document.addEventListener("DOMContentLoaded", function() {
     const metersRadio = document.getElementById("meters-radio");
     const feetRadio = document.getElementById("feet-radio");
