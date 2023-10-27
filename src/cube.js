@@ -1,8 +1,39 @@
 import * as THREE from 'three';
 import {Dimensions} from "./dimensions";
 
+/**
+ * A class for creating and manipulating 3D Cubes in THREE.js.
+ *
+ * @class Cube
+ * @constructor
+ * @param position {Object} Object with `x`, `y` and `z` values indicating the cube's position in the 3D space.
+ * @param color {string} the color of the cube in a three.js color format (eg: "#ffffff" or color name string).
+ * @param dimensions {Dimensions} An instance of `Dimensions` class with `depth`, `width`, and `height` of the cube. By default, creates a 1x1x1 cube.
+ * @param opacity {number} A decimal between 0 and 1 indicating the cube's transparancy. 1 by default.
+ *
+ *
+ * @example
+ *  const cube = new Cube({x: 0, y: 0, z: 0}, "#ffffff", new Dimensions(1, 1, 1), 1);
+ *  cube.setPosition({x: 1, y: 1, z: 1});
+ *
+ * @returns Cube instance
+ */
 export class Cube {
     constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
+        /**
+         * Create a BoxGeometry for our THREE.Mesh.
+         *
+         * Note: In this project, Depth corresponds to the X axis, Width corresponds to the Y axis,
+         * and Height corresponds to the Z axis. So contrary to the expected order of parameters in
+         * Three.js when creating a BoxGeometry which is Width, Height, and Depth, here we are using
+         * Depth, Width, and Height. This is because in our architectural drawing Z is up/down
+         * (corresponding to the height of the object) and this concept is enforced by `THREE.Object3D.DEFAULT_UP.set(0, 0, 1)`
+         * settings in the main.js.
+         *
+         * @const geometry {THREE.BoxGeometry}
+         * @memberof Cube
+         * @inner
+         */
         const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
         const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
         this.mesh = new THREE.Mesh(geometry, material);
@@ -14,6 +45,20 @@ export class Cube {
         this.mesh.position.set(position.x, position.y, position.z);
     }
 
+    /**
+     * Method to change the dimensions of the cube.
+     *
+     * In Three.js, there's no built-in way to directly update the geometry of a cube and its edges.
+     * Therefore, this method first removes existing line segments (edges) from the cube's geometry.
+     * Then, it creates a new geometry with the updated dimensions and a corresponding edges geometry,
+     * and attaches these to the cube. This way, we ensure that the dimensions of the cube and its edges
+     * stay in sync whenever the cube's dimensions are updated.
+     *
+     * @method changeDimensions
+     * @param dimensions {Dimensions} An instance of `Dimensions` class with `depth`, `width`, `height` of the cube.
+     * @example
+     *  cube.changeDimensions(new Dimensions(2, 2, 2));
+     */
     changeDimensions(dimensions) {
         this.mesh.children.forEach(child => {
             if (child instanceof THREE.LineSegments) {
@@ -55,6 +100,25 @@ export class Cube {
         }
     }
 
+    /**
+     * Method to get the dimensions of the cube.
+     *
+     * Please note that in this project's configuration, the
+     * 'depth' is along the X axis, 'width' is along the Y axis,
+     * and 'height' is along the Z axis.
+     *
+     * Three.js's BoxGeometry constructor takes parameters in the
+     * order (width, height, depth), but because of our unique
+     * axis configuration, we pass them as (depth, width, height)
+     * as evident in Cube's constructor. Therefore, when we
+     * fetch parameters, we have to match our architectural drawing
+     * coordinate system with Three.js's geometry parameters.
+     *
+     * @method getDimensions
+     * @returns {Dimensions} Returns an instance of `Dimensions` with the cube's current depth, width, and height.
+     * @example
+     *  let currentDimensions = cube.getDimensions();
+     */
     getDimensions() {
         let localDepth = this.mesh.geometry.parameters.width;
         let localWidth = this.mesh.geometry.parameters.height;
@@ -89,6 +153,16 @@ export class Cube {
         }
     }
 
+    /**
+     * Method to mirror the cube object along the Y axis.
+     *
+     * This is especially useful when working with `mainMirror` and `subMirror` objects
+     * for quickly producing a mirror effect along the Y axis.
+     *
+     * @method flipY
+     * @example
+     *  cube.flipY();
+     */
     flipY() {
         this.mesh.position.y = -this.mesh.position.y;
     }
