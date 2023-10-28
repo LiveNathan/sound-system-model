@@ -272,8 +272,12 @@ function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
 
     timeline.clear();
     timeline.fromTo(camera.position,
-        { ...camera.position },
-        { ...newPosition, onUpdate: function() { controls.update(); }}
+        {...camera.position},
+        {
+            ...newPosition, onUpdate: function () {
+                controls.update();
+            }
+        }
     );
 
     camera.near = distance / 10;
@@ -284,6 +288,30 @@ function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
     controls.update();
 }
 
+function fitMainSubFromSide() {
+    fitCameraToSelection([main, sub], 3, "SIDE");
+}
+
+function fitMainFromSide() {
+    fitCameraToSelection([main], 3, "SIDE");
+}
+
+function fitSceneFromSide() {
+    fitCameraToSelection([], 1, "SIDE");
+}
+
+function fitSceneFromTop() {
+    fitCameraToSelection([], 1, "TOP");
+}
+
+function fitSubAndMirrorFromTop() {
+    if (pageElements.subConfigCheckbox.checked) {
+        fitCameraToSelection([sub, subMirror], 1, "TOP");
+    } else {
+        fitCameraToSelection([sub], 3, "TOP");
+    }
+}
+
 // EVENT LISTENERS
 window.addEventListener('resize', onWindowResize, false);
 
@@ -292,7 +320,7 @@ pageElements.subConfigCheckbox.addEventListener('change', (event) => {
     addSubMirror(event.target);
 
     if (event.target.checked) {
-        fitCameraToSelection([sub, subMirror], 2, "FRONT");
+        fitCameraToSelection([sub, subMirror], 1, "FRONT");
     }
     animate();
 });
@@ -310,7 +338,12 @@ pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change',
 
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, event.target.checked);
 
-    fitCameraToSelection([main, sub], 3, "SIDE");
+    fitMainSubFromSide();
+    animate();
+});
+
+pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('focus', (event) => {
+    fitMainSubFromSide();
     animate();
 });
 
@@ -325,11 +358,12 @@ pageElements.subDepthInput.addEventListener('input', (event) => {
 
     subMirror.setX(sub.getPosition().x);
 
-    if (pageElements.subConfigCheckbox.checked) {
-        fitCameraToSelection([sub, subMirror], 1, "TOP");
-    } else {
-        fitCameraToSelection([sub], 3, "TOP");
-    }
+    fitSubAndMirrorFromTop();
+    animate();
+});
+
+pageElements.subDepthInput.addEventListener('focus', (event) => {
+    fitSubAndMirrorFromTop();
     animate();
 });
 
@@ -342,7 +376,12 @@ pageElements.arrayDepthInput.addEventListener('input', (event) => {
     mainMirror.setDepth(main.getDimensions().depth);
     mainMirror.setX(main.getPosition().x);
 
-    fitCameraToSelection(main, 5, "SIDE")
+    fitMainFromSide();
+    animate();
+});
+
+pageElements.arrayDepthInput.addEventListener('focus', (event) => {
+    fitMainFromSide();
     animate();
 });
 
@@ -350,7 +389,12 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     main.setHeight(event.target.value);
     mainMirror.setHeight(main.getDimensions().height);
 
-    fitCameraToSelection([main], 3, "SIDE");
+    fitMainFromSide();
+    animate();
+});
+
+pageElements.arraySpanInput.addEventListener('focus', (event) => {
+    fitMainFromSide();
     animate();
 });
 
@@ -358,7 +402,12 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     main.setZFromBottom(event.target.value);
     mainMirror.setZFromBottom(event.target.value);
 
-    fitCameraToSelection([main], 3, "SIDE");
+    fitMainFromSide();
+    animate();
+});
+
+pageElements.arrayBottomHeightInput.addEventListener('focus', (event) => {
+    fitMainFromSide();
     animate();
 });
 
@@ -368,51 +417,62 @@ pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     subMirror.setY(-sub.getPosition().y);
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, event.target.value);
 
-    if (pageElements.subConfigCheckbox.checked) {
-        fitCameraToSelection([sub, subMirror], 1, "TOP");
-    } else {
-        fitCameraToSelection([sub], 3, "TOP");
-    }
+    fitSubAndMirrorFromTop();
+    animate();
+});
+
+pageElements.subDistanceFromCenterInput.addEventListener('focus', (event) => {
+    fitSubAndMirrorFromTop();
     animate();
 });
 
 pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
-    fitCameraToSelection([], 1, "TOP");
+    fitSceneFromTop();
+    animate();
+});
+
+pageElements.audienceDepthFirstRowInput.addEventListener('focus', (event) => {
+    fitSceneFromTop();
     animate();
 });
 
 pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, event.target.value);
-    fitCameraToSelection([], 1, "TOP");
+    fitSceneFromTop();
+    animate();
+});
+
+pageElements.audienceDepthLastRowInput.addEventListener('focus', (event) => {
+    fitSceneFromTop();
     animate();
 });
 
 pageElements.audienceSeatedRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         event.target.checked);
-    fitCameraToSelection([], 1, "SIDE");
+    fitSceneFromSide();
     animate();
 });
 
 pageElements.audienceStandingRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         false);
-    fitCameraToSelection([], 1, "SIDE");
+    fitSceneFromSide();
     animate();
 });
 
 pageElements.metersRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, event.target.checked);
-    fitCameraToSelection([], 1, "SIDE");
+    fitSceneFromSide();
     animate();
 });
 
 pageElements.feetRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, false);
-    fitCameraToSelection([], 1, "SIDE");
+    fitSceneFromSide();
     animate();
 });
 
