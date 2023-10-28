@@ -2,6 +2,7 @@ import './index.css'
 import './updated-alignment-position-fields'
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
+import {gsap} from "gsap";
 import {
     AUDIENCE_LOCATION_Z_IF_SEATED_METERS,
     AUDIENCE_LOCATION_Z_IF_SEATED_OTHER,
@@ -10,8 +11,7 @@ import {
     AUDIENCE_DIMENSION_WIDTH_FACTOR,
     MAIN_COLOR,
     SUB_COLOR,
-    AUDIENCE_COLOR,
-    timeline
+    AUDIENCE_COLOR
 } from './constants.js';
 import {pageElements} from "./htmlPageElements";
 import {Dimensions} from "./dimensions";
@@ -222,17 +222,14 @@ function onWindowResize() {
  * @param {number} offset - The offset for the camera from the objects. A larger offset will move the camera further away. Default value is 1.
  * @param {string|null} orientation - The orientation of the camera. Valid values are "TOP", "SIDE", "FRONT" or null. If null, the function will adapt the camera based on the objects and offset.
  */
-function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
+function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
+    const timeline = gsap.timeline({defaults: {duration: 1}});
     const box = new THREE.Box3();
 
-    if (objects) {
-        if (Array.isArray(objects)) {
-            objects.forEach(object => {
-                box.expandByObject(object.mesh);
-            });
-        } else {
-            box.setFromObject(objects.mesh);
-        }
+    if (objects.length > 0) {
+        objects.forEach(object => {
+            box.expandByObject(object.mesh);
+        });
     } else {
         scene.traverse(child => {
             if (child instanceof THREE.Mesh) {
@@ -253,12 +250,6 @@ function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
 
     controls.maxDistance = distance * 2;
     controls.target = center;
-
-    // Check if objects is an empty array
-    if (Array.isArray(objects) && objects.length === 0) {
-        console.error('Error: Empty array provided to fitCameraToSelection');
-        return;
-    }
 
     let newPosition;
     if (orientation) {
@@ -282,8 +273,7 @@ function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
     timeline.clear();
     timeline.fromTo(camera.position,
         { ...camera.position },
-        { ...newPosition,
-            onUpdate: function() { controls.update(); }}
+        { ...newPosition, onUpdate: function() { controls.update(); }}
     );
 
     camera.near = distance / 10;
@@ -338,7 +328,7 @@ pageElements.subDepthInput.addEventListener('input', (event) => {
     if (pageElements.subConfigCheckbox.checked) {
         fitCameraToSelection([sub, subMirror], 1, "TOP");
     } else {
-        fitCameraToSelection(sub, 3, "TOP");
+        fitCameraToSelection([sub], 3, "TOP");
     }
     animate();
 });
@@ -360,7 +350,7 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     main.setHeight(event.target.value);
     mainMirror.setHeight(main.getDimensions().height);
 
-    fitCameraToSelection(main, 3, "SIDE");
+    fitCameraToSelection([main], 3, "SIDE");
     animate();
 });
 
@@ -368,7 +358,7 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     main.setZFromBottom(event.target.value);
     mainMirror.setZFromBottom(event.target.value);
 
-    fitCameraToSelection(main, 3, "SIDE");
+    fitCameraToSelection([main], 3, "SIDE");
     animate();
 });
 
@@ -381,48 +371,48 @@ pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     if (pageElements.subConfigCheckbox.checked) {
         fitCameraToSelection([sub, subMirror], 1, "TOP");
     } else {
-        fitCameraToSelection(sub, 3, "TOP");
+        fitCameraToSelection([sub], 3, "TOP");
     }
     animate();
 });
 
 pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
-    fitCameraToSelection(null, 1, "TOP");
+    fitCameraToSelection([], 1, "TOP");
     animate();
 });
 
 pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, event.target.value);
-    fitCameraToSelection(null, 1, "TOP");
+    fitCameraToSelection([], 1, "TOP");
     animate();
 });
 
 pageElements.audienceSeatedRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         event.target.checked);
-    fitCameraToSelection(null, 1, "SIDE");
+    fitCameraToSelection([], 1, "SIDE");
     animate();
 });
 
 pageElements.audienceStandingRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         false);
-    fitCameraToSelection(null, 1, "SIDE");
+    fitCameraToSelection([], 1, "SIDE");
     animate();
 });
 
 pageElements.metersRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, event.target.checked);
-    fitCameraToSelection(null, 1, "SIDE");
+    fitCameraToSelection([], 1, "SIDE");
     animate();
 });
 
 pageElements.feetRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, false);
-    fitCameraToSelection(null, 1, "SIDE");
+    fitCameraToSelection([], 1, "SIDE");
     animate();
 });
 
