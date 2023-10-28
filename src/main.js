@@ -281,8 +281,8 @@ function fitCameraToSelection(objects = null, offset = 1, orientation = null) {
 
     timeline.clear();
     timeline.fromTo(camera.position,
-        {x: camera.position.x, y: camera.position.y, z: camera.position.z},
-        {x: newPosition.x, y: newPosition.y, z: newPosition.z,
+        { ...camera.position },
+        { ...newPosition,
             onUpdate: function() { controls.update(); }}
     );
 
