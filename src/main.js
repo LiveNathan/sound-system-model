@@ -44,6 +44,7 @@ const camera = setupCamera(pageElements.container);
 pageElements.container.appendChild(renderer.domElement);
 
 let controls = setupControls(camera, renderer);
+let userInteracted = false;
 addAxes();
 const {xLabel, yLabel, zLabel, labelRenderer} = addAxesLabels(pageElements);
 scene.add(xLabel);
@@ -241,69 +242,71 @@ function onWindowResize() {
  * @param {string|null} orientation - The orientation of the camera. Valid values are "TOP", "SIDE", "FRONT" or null. If null, the function will adapt the camera based on the objects and offset.
  */
 function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
-    const timeline = gsap.timeline({defaults: {duration: 1}});
-    const box = new THREE.Box3();
+    if (!userInteracted) {
+        const timeline = gsap.timeline({defaults: {duration: 1}});
+        const box = new THREE.Box3();
 
-    if (objects.length > 0) {
-        objects.forEach(object => {
-            box.expandByObject(object.mesh);
-        });
-    } else {
-        scene.traverse(child => {
-            if (child instanceof THREE.Mesh) {
-                box.expandByObject(child);
-            }
-        });
-    }
-
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-
-    const maxSize = Math.max(size.x, size.y, size.z);
-    const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
-    const fitWidthDistance = fitHeightDistance / camera.aspect;
-    const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
-
-    const direction = controls.target.clone().sub(camera.position).normalize().multiplyScalar(distance);
-
-    controls.maxDistance = distance * 2;
-    controls.target = center;
-
-    let newPosition;
-    if (orientation) {
-        switch (orientation) {
-            case "TOP":
-                newPosition = new THREE.Vector3(center.x, center.y, center.z + distance);
-                break;
-            case "SIDE":
-                newPosition = new THREE.Vector3(center.x, center.y + distance, center.z);
-                break;
-            case "FRONT":
-                newPosition = new THREE.Vector3(center.x + distance, center.y, center.z);
-                break;
-            default:
-                break;
+        if (objects.length > 0) {
+            objects.forEach(object => {
+                box.expandByObject(object.mesh);
+            });
+        } else {
+            scene.traverse(child => {
+                if (child instanceof THREE.Mesh) {
+                    box.expandByObject(child);
+                }
+            });
         }
-    } else {
-        newPosition = controls.target.clone().sub(direction);
-    }
 
-    timeline.clear();
-    timeline.fromTo(camera.position,
-        {...camera.position},
-        {
-            ...newPosition, onUpdate: function () {
-                controls.update();
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        const maxSize = Math.max(size.x, size.y, size.z);
+        const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
+        const fitWidthDistance = fitHeightDistance / camera.aspect;
+        const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
+
+        const direction = controls.target.clone().sub(camera.position).normalize().multiplyScalar(distance);
+
+        controls.maxDistance = distance * 2;
+        controls.target = center;
+
+        let newPosition;
+        if (orientation) {
+            switch (orientation) {
+                case "TOP":
+                    newPosition = new THREE.Vector3(center.x, center.y, center.z + distance);
+                    break;
+                case "SIDE":
+                    newPosition = new THREE.Vector3(center.x, center.y + distance, center.z);
+                    break;
+                case "FRONT":
+                    newPosition = new THREE.Vector3(center.x + distance, center.y, center.z);
+                    break;
+                default:
+                    break;
             }
+        } else {
+            newPosition = controls.target.clone().sub(direction);
         }
-    );
 
-    camera.near = distance / 10;
-    camera.far = distance * 10;
+        timeline.clear();
+        timeline.fromTo(camera.position,
+            {...camera.position},
+            {
+                ...newPosition, onUpdate: function () {
+                    controls.update();
+                }
+            }
+        );
 
-    camera.updateProjectionMatrix();
+        camera.near = distance / 10;
+        camera.far = distance * 10;
 
-    controls.update();
+        camera.updateProjectionMatrix();
+
+        controls.update();
+    }
 }
 
 function fitMainSubFromSide() {
@@ -495,6 +498,9 @@ pageElements.feetRadio.addEventListener('change', () => {
 });
 
 pageElements.resetZoom.addEventListener('click', () => {
+    userInteracted = false;
     fitCameraToSelection();
     animate();
 });
+
+controls.addEventListener('start', () => userInteracted = true);
