@@ -212,7 +212,6 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
 
 function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
-        console.log("updating audience width")
         audience.setWidth(Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR);
     }
 }
