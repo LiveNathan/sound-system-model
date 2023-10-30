@@ -19,21 +19,21 @@ import {Dimensions} from "./dimensions";
  * @returns Cube instance
  */
 export class Cube {
-        /**
-         * Create a BoxGeometry for our THREE.Mesh.
-         *
-         * Note: In this project, Depth corresponds to the X axis, Width corresponds to the Y axis,
-         * and Height corresponds to the Z axis. So contrary to the expected order of parameters in
-         * Three.js when creating a BoxGeometry which is Width, Height, and Depth, here we are using
-         * Depth, Width, and Height. This is because in our architectural drawing Z is up/down
-         * (corresponding to the height of the object) and this concept is enforced by `THREE.Object3D.DEFAULT_UP.set(0, 0, 1)`
-         * settings in the main.js.
-         *
-         * @const geometry {THREE.BoxGeometry}
-         * @memberof Cube
-         * @inner
-         */
-          constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
+    /**
+     * Create a BoxGeometry for our THREE.Mesh.
+     *
+     * Note: In this project, Depth corresponds to the X axis, Width corresponds to the Y axis,
+     * and Height corresponds to the Z axis. So contrary to the expected order of parameters in
+     * Three.js when creating a BoxGeometry which is Width, Height, and Depth, here we are using
+     * Depth, Width, and Height. This is because in our architectural drawing Z is up/down
+     * (corresponding to the height of the object) and this concept is enforced by `THREE.Object3D.DEFAULT_UP.set(0, 0, 1)`
+     * settings in the main.js.
+     *
+     * @const geometry {THREE.BoxGeometry}
+     * @memberof Cube
+     * @inner
+     */
+    constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
         const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
         const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
         this.mesh = new THREE.Mesh(geometry, material);

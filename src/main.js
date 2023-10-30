@@ -1,5 +1,23 @@
+/**
+ * This is a Three.js based 3D scene setup and manipulation program for an architectural visualization where the Z axis represents the up and down directions.
+ *
+ * The purpose of the program is to create a 3D visualization that allows the users to adjust and view a particular architectural configuration such as audience seating arrangement from different angles and perspectives.
+ *
+ * The visualization scene is created using THREE.js library and features a setup of 3D objects that can be manipulated in real time through the HTML UI elements or programmatically.
+ *
+ * The setup includes a main cube object, sub-cube objects with mirror capabilities as well as an audience cube object. Changes to these objects such as dimensions, and positions can be done through UI elements.
+ *
+ * The program also features functionality for zooming and repositioning the viewpoint of the visualization which can be done programmatically or from UI elements.
+ *
+ * The visualization also uses gsap for smooth transition of viewpoint changes. Error handling for unavailability of WebGL is included to keep the user informed about the compatibility issues.
+ *
+ * With the architectural axis arrangement where z is up and down, it follows the common architectural and engineering practices, it allows easy translation between the architectural designs and this 3D representation.
+ *
+ * @module main.js
+ * @author Nathan Lively
+ * @version 1.0
+ */
 import './index.css'
-import './updated-alignment-position-fields'
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import {gsap} from "gsap";
@@ -218,7 +236,7 @@ function onWindowResize() {
  * The distance calculation will depend on the camera's field of view and its aspect ratio.
  * The function offers different calculations based on whether the object is an array, has a specific orientation, or if it is null.
  *
- * @param {Array|null} objects - The objects that the camera must adapt to. If null, the function traverses the entire scene to get the outer boundary.
+ * @param {Array} objects - The objects that the camera must adapt to. If empty, the function traverses the entire scene to get the outer boundary.
  * @param {number} offset - The offset for the camera from the objects. A larger offset will move the camera further away. Default value is 1.
  * @param {string|null} orientation - The orientation of the camera. Valid values are "TOP", "SIDE", "FRONT" or null. If null, the function will adapt the camera based on the objects and offset.
  */
@@ -342,7 +360,7 @@ pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change',
     animate();
 });
 
-pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('focus', (event) => {
+pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('focus', () => {
     fitMainSubFromSide();
     animate();
 });
@@ -362,7 +380,7 @@ pageElements.subDepthInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.subDepthInput.addEventListener('focus', (event) => {
+pageElements.subDepthInput.addEventListener('focus', () => {
     fitSubAndMirrorFromTop();
     animate();
 });
@@ -380,7 +398,7 @@ pageElements.arrayDepthInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.arrayDepthInput.addEventListener('focus', (event) => {
+pageElements.arrayDepthInput.addEventListener('focus', () => {
     fitMainFromSide();
     animate();
 });
@@ -393,7 +411,7 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.arraySpanInput.addEventListener('focus', (event) => {
+pageElements.arraySpanInput.addEventListener('focus', () => {
     fitMainFromSide();
     animate();
 });
@@ -406,7 +424,7 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.arrayBottomHeightInput.addEventListener('focus', (event) => {
+pageElements.arrayBottomHeightInput.addEventListener('focus', () => {
     fitMainFromSide();
     animate();
 });
@@ -421,7 +439,7 @@ pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.subDistanceFromCenterInput.addEventListener('focus', (event) => {
+pageElements.subDistanceFromCenterInput.addEventListener('focus', () => {
     fitSubAndMirrorFromTop();
     animate();
 });
@@ -432,7 +450,7 @@ pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.audienceDepthFirstRowInput.addEventListener('focus', (event) => {
+pageElements.audienceDepthFirstRowInput.addEventListener('focus', () => {
     fitSceneFromTop();
     animate();
 });
@@ -443,7 +461,7 @@ pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
     animate();
 });
 
-pageElements.audienceDepthLastRowInput.addEventListener('focus', (event) => {
+pageElements.audienceDepthLastRowInput.addEventListener('focus', () => {
     fitSceneFromTop();
     animate();
 });
