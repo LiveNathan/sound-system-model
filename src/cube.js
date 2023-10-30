@@ -19,7 +19,6 @@ import {Dimensions} from "./dimensions";
  * @returns Cube instance
  */
 export class Cube {
-    constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
         /**
          * Create a BoxGeometry for our THREE.Mesh.
          *
@@ -34,6 +33,7 @@ export class Cube {
          * @memberof Cube
          * @inner
          */
+          constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
         const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
         const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
         this.mesh = new THREE.Mesh(geometry, material);
