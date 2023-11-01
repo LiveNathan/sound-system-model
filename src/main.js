@@ -1,7 +1,26 @@
+/**
+ * This is a Three.js based 3D scene setup and manipulation program for an architectural visualization where the Z axis represents the up and down directions.
+ *
+ * The purpose of the program is to create a 3D visualization that allows the users to adjust and view a particular architectural configuration such as audience seating arrangement from different angles and perspectives.
+ *
+ * The visualization scene is created using THREE.js library and features a setup of 3D objects that can be manipulated in real time through the HTML UI elements or programmatically.
+ *
+ * The setup includes a main cube object, sub-cube objects with mirror capabilities as well as an audience cube object. Changes to these objects such as dimensions, and positions can be done through UI elements.
+ *
+ * The program also features functionality for zooming and repositioning the viewpoint of the visualization which can be done programmatically or from UI elements.
+ *
+ * The visualization also uses gsap for smooth transition of viewpoint changes. Error handling for unavailability of WebGL is included to keep the user informed about the compatibility issues.
+ *
+ * With the architectural axis arrangement where z is up and down, it follows the common architectural and engineering practices, it allows easy translation between the architectural designs and this 3D representation.
+ *
+ * @module main.js
+ * @author Nathan Lively
+ * @version 1.0
+ */
 import './index.css'
-import './updated-alignment-position-fields'
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
+import {gsap} from "gsap";
 import {
     AUDIENCE_LOCATION_Z_IF_SEATED_METERS,
     AUDIENCE_LOCATION_Z_IF_SEATED_OTHER,
@@ -25,6 +44,7 @@ const camera = setupCamera(pageElements.container);
 pageElements.container.appendChild(renderer.domElement);
 
 let controls = setupControls(camera, renderer);
+let userInteracted = false;
 addAxes();
 const {xLabel, yLabel, zLabel, labelRenderer} = addAxesLabels(pageElements);
 scene.add(xLabel);
@@ -49,7 +69,6 @@ let sub = new Cube(setSubLocation(), SUB_COLOR, new Dimensions(1, 2, 1));
 setSubLocationY(pageElements.subConfigCheckbox.checked, pageElements.arrayBottomHeightInput.value);
 scene.add(sub.mesh);
 
-console.log("make subMirror")
 let subMirror;
 addSubMirror(pageElements.subConfigCheckbox);
 
@@ -146,6 +165,8 @@ function addSubMirror(subConfigCheckbox) {
     if (subConfigCheckbox.checked) {
         if (!scene.children.includes(subMirror.mesh)) {
             scene.add(subMirror.mesh);
+            subMirror.setPosition(sub.getPosition());
+            subMirror.flipY();
         }
     } else {
         if (scene.children.includes(subMirror.mesh)) {
@@ -154,6 +175,17 @@ function addSubMirror(subConfigCheckbox) {
     }
 }
 
+/**
+ * This function updates different audience properties and dimensions.
+ *
+ * @param {string|number} audienceDepthFirstRow - The audience depth for the first row. Default is the value from input.
+ * @param {string|number} audienceDepthLastRow - The audience depth for the last row. Default is the value from input.
+ * @param {string|number} subY - The distance of subwoofer from center. Default is the value from input.
+ * @param {boolean} distancedReferencedFromBelowArray - Check if the distance is referenced from below array. Default is a checked value from checkbox.
+ * @param {boolean} audienceSeated - Check if the audience is seated. Default is a checked value from radio button.
+ * @param {boolean} meters - Check if the measurement unit is in meters. Default is a checked value from radio button.
+ *
+ */
 function updateAudience(
     audienceDepthFirstRow = pageElements.audienceDepthFirstRowInput.value,
     audienceDepthLastRow = pageElements.audienceDepthLastRowInput.value,
@@ -173,7 +205,6 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
         audience.setDepth(depth)
         audience.setX(depth / 2 + Number(audienceDepthFirstRow));
         if (distancedReferencedFromBelowArray) {
-            // audienceLocation.x += mainDimensions.depth / 2;
             audience.setX(audience.getPosition().x + main.getDimensions().depth / 2);
         }
     }
@@ -181,15 +212,12 @@ function updateAudienceLocationX(audienceDepthFirstRow, audienceDepthLastRow, di
 
 function updateAudienceDimensionWidth(subY) {
     if (subY !== "") {
-        // audienceDimensions.width = Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR;
-        console.log("updating audience width")
         audience.setWidth(Number(subY) * AUDIENCE_DIMENSION_WIDTH_FACTOR);
     }
 }
 
 function updateAudienceLocationZ(audienceSeated, meters) {
     if (audienceSeated) {
-        // audienceLocation.z = meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER;
         audience.setZ(meters ? AUDIENCE_LOCATION_Z_IF_SEATED_METERS : AUDIENCE_LOCATION_Z_IF_SEATED_OTHER);
     } else {
         audience.setZ(meters ? AUDIENCE_LOCATION_Z_NOT_SEATED_METERS : AUDIENCE_LOCATION_Z_NOT_SEATED_OTHER);
@@ -202,35 +230,106 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function fitCameraToSelection(offset = 1) {
-    const box = new THREE.Box3();
+/**
+ * Adjusts the camera to fit a selection of objects within the view.
+ * The camera view can be oriented from top, side or front, and has calculated distance.
+ * The distance calculation will depend on the camera's field of view and its aspect ratio.
+ * The function offers different calculations based on whether the object is an array, has a specific orientation, or if it is null.
+ *
+ * @param {Array} objects - The objects that the camera must adapt to. If empty, the function traverses the entire scene to get the outer boundary.
+ * @param {number} offset - The offset for the camera from the objects. A larger offset will move the camera further away. Default value is 1.
+ * @param {string|null} orientation - The orientation of the camera. Valid values are "TOP", "SIDE", "FRONT" or null. If null, the function will adapt the camera based on the objects and offset.
+ */
+function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
+    if (!userInteracted) {
+        const timeline = gsap.timeline({defaults: {duration: 1}});
+        const box = new THREE.Box3();
 
-    scene.traverse(child => {
-        if (child instanceof THREE.Mesh) {
-            box.expandByObject(child);
+        if (objects.length > 0) {
+            objects.forEach(object => {
+                box.expandByObject(object.mesh);
+            });
+        } else {
+            scene.traverse(child => {
+                if (child instanceof THREE.Mesh) {
+                    box.expandByObject(child);
+                }
+            });
         }
-    });
 
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
 
-    const maxSize = Math.max(size.x, size.y, size.z);
-    const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
-    const fitWidthDistance = fitHeightDistance / camera.aspect;
-    const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
+        const maxSize = Math.max(size.x, size.y, size.z);
+        const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
+        const fitWidthDistance = fitHeightDistance / camera.aspect;
+        const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
 
-    const direction = controls.target.clone().sub(camera.position).normalize().multiplyScalar(distance);
+        const direction = controls.target.clone().sub(camera.position).normalize().multiplyScalar(distance);
 
-    controls.maxDistance = distance * 2;
-    controls.target = center;
+        controls.maxDistance = distance * 2;
+        controls.target = center;
 
-    camera.near = distance / 10;
-    camera.far = distance * 10;
-    camera.updateProjectionMatrix();
+        let newPosition;
+        if (orientation) {
+            switch (orientation) {
+                case "TOP":
+                    newPosition = new THREE.Vector3(center.x, center.y, center.z + distance);
+                    break;
+                case "SIDE":
+                    newPosition = new THREE.Vector3(center.x, center.y + distance, center.z);
+                    break;
+                case "FRONT":
+                    newPosition = new THREE.Vector3(center.x + distance, center.y, center.z);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            newPosition = controls.target.clone().sub(direction);
+        }
 
-    camera.position.copy(controls.target).sub(direction);
+        timeline.clear();
+        timeline.fromTo(camera.position,
+            {...camera.position},
+            {
+                ...newPosition, onUpdate: function () {
+                    controls.update();
+                }
+            }
+        );
 
-    controls.update();
+        camera.near = distance / 10;
+        camera.far = distance * 10;
+
+        camera.updateProjectionMatrix();
+
+        controls.update();
+    }
+}
+
+function fitMainSubFromSide() {
+    fitCameraToSelection([main, sub], 3, "SIDE");
+}
+
+function fitMainFromSide() {
+    fitCameraToSelection([main], 3, "SIDE");
+}
+
+function fitSceneFromSide() {
+    fitCameraToSelection([], 1, "SIDE");
+}
+
+function fitSceneFromTop() {
+    fitCameraToSelection([], 1, "TOP");
+}
+
+function fitSubAndMirrorFromTop() {
+    if (pageElements.subConfigCheckbox.checked) {
+        fitCameraToSelection([sub, subMirror], 1, "TOP");
+    } else {
+        fitCameraToSelection([sub], 3, "TOP");
+    }
 }
 
 // EVENT LISTENERS
@@ -239,23 +338,32 @@ window.addEventListener('resize', onWindowResize, false);
 pageElements.subConfigCheckbox.addEventListener('change', (event) => {
     setSubLocationY(event.target.checked, pageElements.subDistanceFromCenterInput.value);
     addSubMirror(event.target);
-    fitCameraToSelection();
+
+    if (event.target.checked) {
+        fitCameraToSelection([sub, subMirror], 1, "FRONT");
+    }
     animate();
 });
 
 pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('change', (event) => {
     if (event.target.checked) {
         main.setX(0);
-        sub.setX((-sub.getDimensions().depth / 2) + (main.getDimensions().depth / 2) + Number(pageElements.arrayBottomHeightInput.value));
+        sub.setX((-sub.getDimensions().depth / 2) + (main.getDimensions().depth / 2) + Number(pageElements.subDepthInput.value));
     } else {
         main.setX(-mainDimensions.depth / 2);
-        sub.setX(-sub.getDimensions().depth / 2 + Number(pageElements.arrayBottomHeightInput.value));
+        sub.setX(-sub.getDimensions().depth / 2 + Number(pageElements.subDepthInput.value));
     }
     mainMirror.setX(main.getPosition().x);
     subMirror.setX(sub.getPosition().x);
 
-    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, event.target.checked);
+    updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, event.target.checked);
 
+    fitMainSubFromSide();
+    animate();
+});
+
+pageElements.distanceReferencedFromBelowArrayCheckbox.addEventListener('focus', () => {
+    fitMainSubFromSide();
     animate();
 });
 
@@ -269,7 +377,13 @@ pageElements.subDepthInput.addEventListener('input', (event) => {
     }
 
     subMirror.setX(sub.getPosition().x);
-    fitCameraToSelection();
+
+    fitSubAndMirrorFromTop();
+    animate();
+});
+
+pageElements.subDepthInput.addEventListener('focus', () => {
+    fitSubAndMirrorFromTop();
     animate();
 });
 
@@ -282,6 +396,12 @@ pageElements.arrayDepthInput.addEventListener('input', (event) => {
     mainMirror.setDepth(main.getDimensions().depth);
     mainMirror.setX(main.getPosition().x);
 
+    fitMainFromSide();
+    animate();
+});
+
+pageElements.arrayDepthInput.addEventListener('focus', () => {
+    fitMainFromSide();
     animate();
 });
 
@@ -289,7 +409,12 @@ pageElements.arraySpanInput.addEventListener('input', (event) => {
     main.setHeight(event.target.value);
     mainMirror.setHeight(main.getDimensions().height);
 
-    fitCameraToSelection();
+    fitMainFromSide();
+    animate();
+});
+
+pageElements.arraySpanInput.addEventListener('focus', () => {
+    fitMainFromSide();
     animate();
 });
 
@@ -297,7 +422,12 @@ pageElements.arrayBottomHeightInput.addEventListener('input', (event) => {
     main.setZFromBottom(event.target.value);
     mainMirror.setZFromBottom(event.target.value);
 
-    fitCameraToSelection();
+    fitMainFromSide();
+    animate();
+});
+
+pageElements.arrayBottomHeightInput.addEventListener('focus', () => {
+    fitMainFromSide();
     animate();
 });
 
@@ -306,42 +436,70 @@ pageElements.subDistanceFromCenterInput.addEventListener('input', (event) => {
     setSubLocationY(pageElements.subConfigCheckbox.checked, event.target.value);
     subMirror.setY(-sub.getPosition().y);
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, event.target.value);
-    fitCameraToSelection();
+
+    fitSubAndMirrorFromTop();
+    animate();
+});
+
+pageElements.subDistanceFromCenterInput.addEventListener('focus', () => {
+    fitSubAndMirrorFromTop();
     animate();
 });
 
 pageElements.audienceDepthFirstRowInput.addEventListener('input', (event) => {
     updateAudience(event.target.value);
-    fitCameraToSelection();
+    fitSceneFromTop();
+    animate();
+});
+
+pageElements.audienceDepthFirstRowInput.addEventListener('focus', () => {
+    fitSceneFromTop();
     animate();
 });
 
 pageElements.audienceDepthLastRowInput.addEventListener('input', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, event.target.value);
-    fitCameraToSelection();
+    fitSceneFromTop();
+    animate();
+});
+
+pageElements.audienceDepthLastRowInput.addEventListener('focus', () => {
+    fitSceneFromTop();
     animate();
 });
 
 pageElements.audienceSeatedRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         event.target.checked);
+    fitSceneFromSide();
     animate();
 });
 
 pageElements.audienceStandingRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         false);
+    fitSceneFromSide();
     animate();
 });
 
 pageElements.metersRadio.addEventListener('change', (event) => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, event.target.checked);
+    fitSceneFromSide();
     animate();
 });
 
 pageElements.feetRadio.addEventListener('change', () => {
     updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.subDistanceFromCenterInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
         pageElements.audienceSeatedRadio.checked, false);
+    fitSceneFromSide();
     animate();
 });
+
+pageElements.resetZoom.addEventListener('click', () => {
+    userInteracted = false;
+    fitCameraToSelection();
+    animate();
+});
+
+controls.addEventListener('start', () => userInteracted = true);

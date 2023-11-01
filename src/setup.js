@@ -5,7 +5,6 @@ import { X_LABEL_CLASS, Y_LABEL_CLASS, Z_LABEL_CLASS, DEFAULT_LABEL_CLASS, LABEL
 
 export function setupCamera(container) {
     const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
-    // camera.up.set(0, 0, 1);
     camera.position.set(70, -40, 15);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     return camera;
