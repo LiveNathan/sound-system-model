@@ -1,16 +1,6 @@
-# template-vite-js-tailwind-v3
+# 3D Sound System Model
 
-- **template of:** vite + vanilaJS
-- **tailwindcss:** v3.x
-
-## Started
-
-```bash
-yarn
-# or `npm install`
-```
-
----
+This small design is a visual aid for an HTML form to help the user understand what each field does.
 
 ## Develop
 
@@ -27,9 +17,3 @@ yarn dev
 yarn build
 # or `npm run build`
 ```
-
----
-
-<p align="center">
-<img src="./powered-by-vitawind-bright.png">
-</p>
