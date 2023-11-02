@@ -84,6 +84,7 @@ fitCameraToSelection();
 // FUNCTIONS
 function animate() {
     requestAnimationFrame(animate);
+    controls.update();
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
 }
