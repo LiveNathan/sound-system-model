@@ -18,7 +18,7 @@
  * @version 1.0
  */
 import './index.css'
-import * as THREE from 'three';
+import { Scene, Box3, Vector3, Object3D, AxesHelper, Mesh } from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import {gsap} from "gsap";
 import {
@@ -37,8 +37,8 @@ import {Cube} from "./cube";
 import {setupCamera, setupRenderer, setupControls, addAxesLabels} from "./setup";
 
 // SETUP
-THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
-const scene = new THREE.Scene();
+Object3D.DEFAULT_UP.set(0, 0, 1);
+const scene = new Scene();
 const renderer = setupRenderer(pageElements);
 const camera = setupCamera(pageElements.container);
 pageElements.container.appendChild(renderer.domElement);
@@ -73,7 +73,7 @@ let subMirror;
 addSubMirror(pageElements.subConfigCheckbox);
 
 let audienceDimensions = new Dimensions(0.1, main.getPosition().y * AUDIENCE_DIMENSION_WIDTH_FACTOR, main.getPosition().y * AUDIENCE_DIMENSION_WIDTH_FACTOR);
-let audienceLocation = new THREE.Vector3(audienceDimensions.depth / 2 + 5, 0, 1.2);
+let audienceLocation = new Vector3(audienceDimensions.depth / 2 + 5, 0, 1.2);
 let audience = new Cube(audienceLocation, AUDIENCE_COLOR, audienceDimensions, 0.15);
 scene.add(audience.mesh);
 updateAudience(pageElements.audienceDepthFirstRowInput.value, pageElements.audienceDepthLastRowInput.value, pageElements.arrayBottomHeightInput.value, pageElements.distanceReferencedFromBelowArrayCheckbox.checked,
@@ -101,7 +101,7 @@ if (WebGL.isWebGLAvailable()) {
 }
 
 function addAxes() {
-    const axesHelper = new THREE.AxesHelper(500);
+    const axesHelper = new AxesHelper(500);
     scene.add(axesHelper);
 }
 
@@ -134,7 +134,7 @@ function setMainDimensionDepth(depth) {
 }
 
 function setMainLocation() {
-    let mainLocation = new THREE.Vector3(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10);
+    let mainLocation = new Vector3(-mainDimensions.depth / 2, 20, mainDimensions.height / 2 + 10);
 
     if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         mainLocation.x = 0;
@@ -150,7 +150,7 @@ function setMainYFromSub(distanceFromCenter) {
 }
 
 function setSubLocation() {
-    let subLocation = new THREE.Vector3(-0.5, 0, 0.5);
+    let subLocation = new Vector3(-0.5, 0, 0.5);
     if (pageElements.distanceReferencedFromBelowArrayCheckbox.checked) {
         subLocation.x = 0;
     }
@@ -243,8 +243,9 @@ function onWindowResize() {
  */
 function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
     if (!userInteracted) {
+        // camera.up.set(0, 1, 0);
         const timeline = gsap.timeline({defaults: {duration: 1}});
-        const box = new THREE.Box3();
+        const box = new Box3();
 
         if (objects.length > 0) {
             objects.forEach(object => {
@@ -252,14 +253,14 @@ function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
             });
         } else {
             scene.traverse(child => {
-                if (child instanceof THREE.Mesh) {
+                if (child instanceof Mesh) {
                     box.expandByObject(child);
                 }
             });
         }
 
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new Vector3());
+        const center = box.getCenter(new Vector3());
 
         const maxSize = Math.max(size.x, size.y, size.z);
         const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
@@ -275,13 +276,13 @@ function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
         if (orientation) {
             switch (orientation) {
                 case "TOP":
-                    newPosition = new THREE.Vector3(center.x, center.y, center.z + distance);
+                    newPosition = new Vector3(center.x, center.y, center.z + distance);
                     break;
                 case "SIDE":
-                    newPosition = new THREE.Vector3(center.x, center.y + distance, center.z);
+                    newPosition = new Vector3(center.x, center.y + distance, center.z);
                     break;
                 case "FRONT":
-                    newPosition = new THREE.Vector3(center.x + distance, center.y, center.z);
+                    newPosition = new Vector3(center.x + distance, center.y, center.z);
                     break;
                 default:
                     break;
@@ -296,6 +297,9 @@ function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
             {
                 ...newPosition, onUpdate: function () {
                     controls.update();
+                },
+                onComplete: function () {
+                    camera.up.set(0, 0, 1);
                 }
             }
         );

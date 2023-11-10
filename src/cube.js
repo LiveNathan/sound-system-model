@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import {BoxGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineSegments, LineBasicMaterial, Color} from 'three';
 import {Dimensions} from "./dimensions";
 
 /**
@@ -20,7 +20,7 @@ import {Dimensions} from "./dimensions";
  */
 export class Cube {
     /**
-     * Create a BoxGeometry for our THREE.Mesh.
+     * Create a BoxGeometry for our Mesh.
      *
      * Note: In this project, Depth corresponds to the X axis, Width corresponds to the Y axis,
      * and Height corresponds to the Z axis. So contrary to the expected order of parameters in
@@ -29,18 +29,18 @@ export class Cube {
      * (corresponding to the height of the object) and this concept is enforced by `THREE.Object3D.DEFAULT_UP.set(0, 0, 1)`
      * settings in the main.js.
      *
-     * @const geometry {THREE.BoxGeometry}
+     * @const geometry {BoxGeometry}
      * @memberof Cube
      * @inner
      */
     constructor(position, color, dimensions = new Dimensions(1, 1, 1), opacity = 1) {
-        const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
-        const material = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
-        this.mesh = new THREE.Mesh(geometry, material);
-        const edges = new THREE.EdgesGeometry(geometry);
-        const edgeColor = new THREE.Color(color);
+        const geometry = new BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
+        const material = new MeshBasicMaterial({color: color, transparent: true, opacity: opacity});
+        this.mesh = new Mesh(geometry, material);
+        const edges = new EdgesGeometry(geometry);
+        const edgeColor = new Color(color);
         edgeColor.offsetHSL(0, 0, 0.2); // Increase lightness by 20%
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
+        const line = new LineSegments(edges, new LineBasicMaterial({color: edgeColor.getHex()}));
         this.mesh.add(line);
         this.mesh.position.set(position.x, position.y, position.z);
     }
@@ -61,21 +61,21 @@ export class Cube {
      */
     changeDimensions(dimensions) {
         this.mesh.children.forEach(child => {
-            if (child instanceof THREE.LineSegments) {
+            if (child instanceof LineSegments) {
                 this.mesh.remove(child);
             }
         });
 
-        const geometry = new THREE.BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
-        const edges = new THREE.EdgesGeometry(geometry);
+        const geometry = new BoxGeometry(dimensions.depth, dimensions.width, dimensions.height);
+        const edges = new EdgesGeometry(geometry);
 
         this.mesh.geometry.dispose();
         this.mesh.geometry = geometry;
 
-        const edgeColor = new THREE.Color(this.mesh.material.color.getHex());
+        const edgeColor = new Color(this.mesh.material.color.getHex());
         edgeColor.offsetHSL(0, 0, 0.2);  // Increase lightness by 20%
 
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: edgeColor.getHex()}));
+        const line = new LineSegments(edges, new LineBasicMaterial({color: edgeColor.getHex()}));
         this.mesh.add(line);
     }
 
