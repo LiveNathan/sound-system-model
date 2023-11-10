@@ -1,3 +1,4 @@
+// dimensions.js
 export class Dimensions {
     constructor(height, width, depth) {
         this.height = height;
