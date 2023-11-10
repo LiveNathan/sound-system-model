@@ -246,6 +246,7 @@ function fitCameraToSelection(objects = [], offset = 1, orientation = null) {
         // camera.up.set(0, 1, 0);
         const timeline = gsap.timeline({defaults: {duration: 1}});
         const box = new Box3();
+        timeline.isActive() && timeline.kill();
 
         if (objects.length > 0) {
             objects.forEach(object => {
@@ -508,3 +509,12 @@ pageElements.resetZoom.addEventListener('click', () => {
 });
 
 controls.addEventListener('start', () => userInteracted = true);
+
+window.addEventListener("load", function() {
+    const elements = document.getElementsByTagName('input');
+    for(let i = 0; i < elements.length; i++) {
+        if(elements[i].value !== '') {
+            elements[i].dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+});

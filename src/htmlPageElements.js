@@ -1,6 +1,6 @@
 // PAGE ELEMENTS
 export const pageElements = {
-    container: document.getElementById("container"),
+    container: document.getElementById("sound-system-model-container"),
     canvas: document.querySelector('#canvas'),
     subConfigCheckbox: document.getElementById("subConfigCheckbox"),
     arraySpanInput: document.getElementById("as"),
